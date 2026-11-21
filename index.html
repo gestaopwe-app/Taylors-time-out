@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#4a1022">
+<meta name="robots" content="noindex,nofollow">
+<title>Taylors Time Out</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--wine:#4a1022;--gold:#b88a3e;--paper:#f6f1e7;--card:#fffdf8;--ink:#241a1c;--mute:#74666a;--line:#e3d9c8;--ok:#2f6b4a;--warn:#a8451f;--r:14px}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+body{min-height:100dvh;padding-bottom:env(safe-area-inset-bottom)}
+header{background:var(--wine);color:#fff;padding:calc(12px + env(safe-area-inset-top)) 16px 12px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:5}
+header h1{font:600 19px/1.2 Georgia,"Times New Roman",serif;margin:0;flex:1}
+header button{background:none;border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:999px;padding:7px 13px;font-size:14px}
+main{max-width:680px;margin:0 auto;padding:16px}
+h2{font:600 22px/1.2 Georgia,serif;margin:6px 0 14px;color:var(--wine)}
+h3{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute);margin:22px 0 8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.big{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-left:6px solid var(--gold);border-radius:var(--r);padding:16px;margin-bottom:10px;font-size:18px;font-weight:600;color:var(--ink)}
+.big small{display:block;font-weight:400;font-size:14px;color:var(--mute);margin-top:2px}
+.big.main{background:var(--wine);color:#fff;border:0;text-align:center;font-size:20px;padding:22px 16px}
+.big.main small{color:#f0dcc0}
+.big.adm{border-left-color:var(--wine);background:#fbf3ee}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.grid2 .big{margin:0;font-size:16px;padding:14px 12px}
+button{font:inherit;cursor:pointer}
+.btn{display:block;width:100%;background:var(--wine);color:#fff;border:0;border-radius:12px;padding:15px;font-size:17px;font-weight:600;margin-top:14px}
+.btn:disabled{opacity:.5}
+.btn.sec{background:none;color:var(--wine);border:1px solid var(--wine)}
+.sm{background:none;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:14px;color:var(--ink)}
+.sm.go{background:var(--ok);border-color:var(--ok);color:#fff}.sm.no{color:var(--warn);border-color:#e2bfae}
+label{display:block;font-weight:600;margin:14px 0 6px}
+label .opt{font-weight:400;color:var(--mute)}
+input,select,textarea{width:100%;font:inherit;padding:12px;border:1px solid #cfc3b0;border-radius:10px;background:#fff;color:var(--ink)}
+textarea{min-height:84px;resize:vertical}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:3px solid rgba(184,138,62,.5);outline-offset:1px}
+.row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row .n{flex:1;min-width:0}.row .n small{display:block;color:var(--mute);font-size:13px}
+.row input.q{width:92px;text-align:center;padding:10px 6px}
+.chk{display:flex;gap:12px;align-items:flex-start;font-weight:500;margin:0;padding:12px 0;border-bottom:1px solid var(--line)}
+.chk:last-child{border-bottom:0}
+.chk input{width:24px;height:24px;flex:none;margin:0;accent-color:var(--wine)}
+.seg{display:flex;border:1px solid #cfc3b0;border-radius:10px;overflow:hidden;flex:none}
+.seg label{margin:0;font-weight:500;font-size:13px;flex:1;text-align:center}
+.seg input{position:absolute;opacity:0;width:1px;height:1px}
+.seg span{display:block;padding:9px;background:#fff;border-right:1px solid #cfc3b0}
+.seg label:last-child span{border-right:0}
+.seg input:checked+span{background:var(--wine);color:#fff}
+.seg input:focus-visible+span{outline:3px solid rgba(184,138,62,.6);outline-offset:-3px}
+.seg.wide{width:100%}.seg.wide span{padding:13px;font-size:16px}
+.tag{display:inline-block;border-radius:999px;padding:3px 10px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.tag.ok{background:#e3efe7;color:var(--ok)}.tag.bad{background:#f6e1d6;color:var(--warn)}.tag.na{background:#ece6da;color:var(--mute)}
+.tabs{display:flex;gap:8px;overflow-x:auto;margin:0 -16px 8px;padding:0 16px 8px}
+.tabs button{flex:none;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px;font-size:14.5px;color:var(--ink)}
+.tabs button.on{background:var(--wine);border-color:var(--wine);color:#fff}
+.names button{display:block;width:100%;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;font-size:18px;font-weight:600;margin-bottom:10px;color:var(--ink)}
+.pin{font-size:30px;letter-spacing:.5em;text-align:center}
+.msg{padding:12px 14px;border-radius:10px;margin-bottom:12px;font-size:15px}
+.msg.err{background:#f6e1d6;color:#7a2d10}.msg.good{background:#e3efe7;color:#1f4d34}
+.mute{color:var(--mute);font-size:14px}
+.split{display:flex;gap:10px;align-items:flex-end}.split>*{flex:1;min-width:0}
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;align-items:end}
+.three label{font-size:14px}
+.tips{display:flex;justify-content:space-between;align-items:center;padding:14px;border-radius:12px;background:#ece6da;margin-top:12px;font-weight:600}
+.tips.ok{background:#e3efe7;color:var(--ok)}.tips.bad{background:#f6e1d6;color:var(--warn)}
+details summary{cursor:pointer;color:var(--wine);font-weight:600;font-size:14px;margin-top:8px}
+.two{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.center{text-align:center;padding:40px 10px;color:var(--mute)}
+.status{background:#fff6e5;border:1px solid #ecd6ad;border-radius:var(--r);padding:12px 14px;margin-bottom:12px}
+</style>
+</head>
+<body>
+<header><h1>Taylors Time Out</h1><span id="hdr"></span></header>
+<main id="app"><p class="center">A carregar…</p></main>
+<script>
+const API="https://jrxhlgjzskxrewbskwen.supabase.co/rest/v1/rpc/api";
+const KEY="sb_publishable_EbHFRtkND-jenA-Ld1olow_RgUXk0rX";
+const $=s=>document.querySelector(s), app=$("#app"), hdr=$("#hdr");
+const e=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const store={get(k){try{return localStorage.getItem(k)}catch(_){return null}},set(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(_){}}};
+let token=store.get("tto_token"),D=null,view="home",tab="shifts",flash=null,pick=null,edit=null,busy=false,ML=null,mlMonth=null;
+const LV={bastante:"Há bastante",pouco:"Há pouco",acabou:"Acabou"};
+const FORMS={closing:"Fecho de turno",alert:"Aviso de falta",request:"Pedidos"};
+const MESES=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const DIAS=["Domingo","Segunda-feira","Terça-feira","Quarta-feira","Quinta-feira","Sexta-feira","Sábado"];
+const HORAS={"Manhã":"10-17h","Noite":"17-24h"};
+
+async function api(action,payload){
+  let r;
+  try{r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json",apikey:KEY,Authorization:"Bearer "+KEY},body:JSON.stringify({action,token,payload:payload||{}})})}
+  catch(_){return {error:"Sem ligação à internet. Tenta de novo."}}
+  let j=null;try{j=await r.json()}catch(_){}
+  if(!r.ok||!j)return {error:"Não foi possível falar com o servidor. Tenta de novo."};
+  if(j.auth===false){token=null;store.set("tto_token",null);D=null}
+  return j;
+}
+const lis=t=>new Date(t).toLocaleString("pt-PT",{timeZone:"Europe/Lisbon",weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+const dayL=d=>new Date(d+"T12:00:00").toLocaleDateString("pt-PT",{weekday:"long",day:"numeric",month:"long"});
+const num=v=>{v=String(v??"").trim().replace(/\s/g,"").replace(",",".");return v===""||isNaN(v)?null:Number(v)};
+const eur=v=>v==null?"—":Number(v).toLocaleString("pt-PT",{style:"currency",currency:"EUR"});
+const r2=v=>Math.round(v*100)/100;
+const isAdmin=()=>D&&D.user.role==="admin";
+const nowHour=()=>Number(new Date().toLocaleString("en-GB",{timeZone:"Europe/Lisbon",hour:"2-digit",hour12:false}));
+function need(i){if(i.mode==="level")return i.level==="pouco"||i.level==="acabou"?"bad":i.level?"ok":"na";
+  if(i.current_stock==null)return "na";if(i.min_stock==null)return "ok";return Number(i.current_stock)<=Number(i.min_stock)?"bad":"ok"}
+const tagOf=i=>{const s=need(i);return `<span class="tag ${s}">${s==="bad"?"Encomendar":s==="ok"?"OK":"Sem contagem"}</span>`};
+const groups=(arr,k)=>{const m=new Map();arr.forEach(x=>{const g=x[k]||"Outros";m.has(g)||m.set(g,[]);m.get(g).push(x)});return [...m]};
+const fl=()=>{const f=flash;flash=null;return f?`<div class="msg ${f.t}" role="status">${e(f.m)}</div>`:""};
+const checks=k=>D.checklist.filter(c=>c.kind===k);
+const checkHtml=k=>{const c=checks(k);return c.length?`<div class="card">${c.map(x=>`<label class="chk"><input type="checkbox" name="chk" value="${e(x.label)}">${e(x.label)}</label>`).join("")}</div>`:""};
+
+function extra(form){return D.questions.filter(q=>q.form===form&&q.active).map(q=>{
+  const o=q.required?"":' <span class="opt">(opcional)</span>',rq=q.required?"required":"",n=`name="q_${q.id}"`;
+  const f=q.type==="longtext"?`<textarea ${n} ${rq}></textarea>`:q.type==="number"?`<input ${n} inputmode="decimal" ${rq}>`:
+    q.type==="choice"?`<select ${n} ${rq}><option value="">Escolhe…</option>${(q.options||[]).map(x=>`<option>${e(x)}</option>`).join("")}</select>`:`<input ${n} ${rq}>`;
+  return `<label>${e(q.label)}${o}${f}</label>`}).join("")}
+const answers=(form,fd)=>D.questions.filter(q=>q.form===form&&q.active).map(q=>({label:q.label,value:(fd.get("q_"+q.id)||"").toString().trim()})).filter(a=>a.value);
+const ansHtml=a=>(a||[]).map(x=>`<div class="mute"><b>${e(x.label)}</b> ${e(x.value)}</div>`).join("");
+
+async function load(){const r=await api("data");if(r.error){if(!token)return boot();app.innerHTML=`<div class="msg err">${e(r.error)}</div><button class="btn" data-a="reload">Tentar de novo</button>`;return}D=r;render()}
+async function boot(){
+  hdr.innerHTML="";
+  if(token)return load();
+  const s=await api("status");
+  if(s.error){app.innerHTML=`<div class="msg err">${e(s.error)}</div><button class="btn" data-a="reload">Tentar de novo</button>`;return}
+  if(s.setup_needed){app.innerHTML=`<h2>Primeira configuração</h2><p>Define o teu código de gestor. É com ele que entras para gerir a app e dar um código a cada empregado.</p>
+    <form data-f="setup">${fl()}<label>Código do gestor (4 a 8 algarismos)<input class="pin" name="pin" type="password" inputmode="numeric" pattern="[0-9]{4,8}" autocomplete="new-password" required></label>
+    <label>Repete o código<input class="pin" name="pin2" type="password" inputmode="numeric" pattern="[0-9]{4,8}" autocomplete="new-password" required></label><button class="btn">Guardar e entrar</button></form>`;return}
+  if(pick){app.innerHTML=`<h2>Olá, ${e(pick.name)}</h2><form data-f="login">${fl()}<label>O teu código<input class="pin" name="pin" type="password" inputmode="numeric" autocomplete="current-password" required autofocus></label>
+    <button class="btn">Entrar</button><button type="button" class="btn sec" data-a="unpick">Não sou eu</button></form>`;return}
+  app.innerHTML=`<h2>Quem és tu?</h2>${fl()}<div class="names">${s.users.map(u=>`<button data-a="pick" data-id="${u.id}" data-name="${e(u.name)}">${e(u.name)}</button>`).join("")||'<p class="mute">Ainda ninguém tem código.</p>'}</div>`;
+}
+
+function render(){
+  hdr.innerHTML=view==="home"?`<button data-a="logout">Sair</button>`:`<button data-a="go" data-v="home">‹ Voltar</button>`;
+  ({home,open:vOpen,close:vClose,alert:vAlert,cash:vCash,goods:vGoods,request:vRequest,schedule:vSchedule,admin:vAdmin})[view]();
+  window.scrollTo(0,0);
+}
+function home(){
+  const S=D.open_shift,n=D.last_note,others=D.on_duty.filter(x=>!S||x.name!==D.user.name);
+  const pend=isAdmin()?D.requests.filter(r=>r.status==="pendente").length+D.alerts.filter(a=>!a.resolved).length:0;
+  app.innerHTML=`<h2>Olá, ${e(D.user.name)}</h2>${fl()}
+  ${n?`<div class="card"><h3 style="margin-top:0">Recado do último turno</h3>${e(n.note)}<div class="mute">${e(n.name||"")} · ${lis(n.at)}</div></div>`:""}
+  ${S?`<div class="status"><b>Turno da ${e(S.shift)} aberto</b> desde as ${e(S.opened)}</div>
+    <div class="grid2"><button class="big" data-a="go" data-v="alert">Acabou um artigo</button><button class="big" data-a="go" data-v="cash">Movimento de caixa</button></div>
+    <button class="big" data-a="go" data-v="goods">Mercadoria recebida<small>Fatura ou guia de uma entrega</small></button>
+    <button class="big main" data-a="go" data-v="close">Fechar turno<small>Lista, TPA, contagem e recado</small></button>`
+  :`<button class="big main" data-a="go" data-v="open">Abrir turno<small>Regista a hora de entrada</small></button>
+    <button class="big" data-a="go" data-v="alert">Acabou um artigo</button>`}
+  ${others.length?`<p class="mute">Em turno agora: ${others.map(x=>`${e(x.name)} (${e(x.shift)}, desde ${e(x.opened)})`).join(", ")}</p>`:""}
+  <h3>Outros</h3>
+  <div class="grid2"><button class="big" data-a="go" data-v="schedule">Escala</button><button class="big" data-a="go" data-v="request">Pedidos<small>Férias, folgas, trocas</small></button></div>
+  ${isAdmin()?`<button class="big adm" data-a="go" data-v="admin">Gestão<small>${pend?pend+" por tratar · ":""}Turnos, stock, caixa, mapas e configuração</small></button>`:""}`;
+}
+function vOpen(){
+  const h=nowHour(),def=h>=15||h<4?"Noite":"Manhã";
+  app.innerHTML=`<h2>Abrir turno</h2>${fl()}<form data-f="open"><label>Que turno?</label>
+  <div class="seg wide" role="radiogroup" aria-label="Turno">${["Manhã","Noite"].map(t=>`<label><input type="radio" name="shift" value="${t}" ${t===def?"checked":""}><span>${t}</span></label>`).join("")}</div>
+  ${checks("abertura").length?`<h3>Lista de abertura</h3>${checkHtml("abertura")}`:""}
+  <button class="btn">Abrir turno agora</button></form>`;
+}
+function vClose(){
+  const items=D.items.filter(i=>i.active);
+  app.innerHTML=`<h2>Fechar turno</h2>${fl()}<form data-f="close">
+  ${checks("fecho").length?`<h3>Lista de fecho</h3>${checkHtml("fecho")}`:""}
+  <h3>Caixa</h3><div class="card"><div class="three">
+  <label>TPA (€)<input name="tpa" inputmode="decimal" required></label><label>TOC (€)<input name="toc" inputmode="decimal" placeholder="0"></label><label>Total vendas (€)<input name="sales_total" inputmode="decimal" required></label></div>
+  <div class="tips" id="tips" aria-live="polite"><span>Gratificação</span><span>—</span></div>
+  <p class="mute" style="margin:8px 0 0">A gratificação é calculada sozinha: TPA + TOC − total de vendas. Se der negativo, é diferença de caixa.</p></div>
+  <h3>Contagem</h3>
+  ${groups(items,"category").map(([g,it])=>`<div class="card"><b>${e(g)}</b>${it.map(i=>i.mode==="number"?
+    `<div class="row"><label class="n" for="c_${i.id}" style="margin:0;font-weight:500">${e(i.name)}<small>${e(i.unit)}</small></label><input class="q" id="c_${i.id}" name="c_${i.id}" inputmode="numeric" placeholder="—"></div>`:
+    `<div class="row"><div class="n">${e(i.name)}</div><div class="seg" role="radiogroup" aria-label="${e(i.name)}">${Object.keys(LV).map(k=>`<label><input type="radio" name="c_${i.id}" value="${k}"><span>${k==="bastante"?"Bastante":k==="pouco"?"Pouco":"Acabou"}</span></label>`).join("")}</div></div>`).join("")}</div>`).join("")}
+  ${extra("closing")}<label>Recado para o próximo turno <span class="opt">(opcional)</span><textarea name="note"></textarea></label>
+  <button class="btn">Fechar turno</button></form>`;
+}
+function updTips(f){
+  const t=num(f.tpa.value),c=num(f.toc.value)||0,s=num(f.sales_total.value),el=$("#tips");if(!el)return;
+  if(t==null||s==null){el.className="tips";el.innerHTML="<span>Gratificação</span><span>—</span>";return}
+  const v=r2(t+c-s);el.className="tips "+(v<0?"bad":"ok");
+  el.innerHTML=v<0?`<span>Diferença de caixa</span><span>${eur(v)}</span>`:`<span>Gratificação</span><span>${eur(v)}</span>`;
+}
+function vAlert(){
+  app.innerHTML=`<h2>Acabou um artigo</h2>${fl()}<form data-f="alert"><label>Que artigo acabou?<select name="item_id" required><option value="">Escolhe…</option>
+  ${groups(D.items.filter(i=>i.active),"category").map(([g,it])=>`<optgroup label="${e(g)}">${it.map(i=>`<option value="${i.id}">${e(i.name)}</option>`).join("")}</optgroup>`).join("")}</select></label>
+  <label>Observações <span class="opt">(opcional)</span><textarea name="note"></textarea></label>${extra("alert")}<button class="btn">Avisar</button></form>`;
+}
+function vCash(){
+  app.innerHTML=`<h2>Movimento de caixa</h2>${fl()}<p class="mute">Dinheiro que sai ou entra no fundo de maneio.</p><form data-f="cash">
+  <div class="seg wide" role="radiogroup" aria-label="Tipo">${[["saida","Saída"],["entrada","Entrada"]].map(([k,l],i)=>`<label><input type="radio" name="kind" value="${k}" ${i?"":"checked"}><span>${l}</span></label>`).join("")}</div>
+  <label>Valor (€)<input name="amount" inputmode="decimal" required></label>
+  <label>Descrição<input name="description" list="mvdesc" required placeholder="ex.: Auchan, água tónica"></label>
+  <datalist id="mvdesc"><option>Auchan</option><option>Loja Time Out</option><option>CTT</option><option>Água tónica</option><option>Limão e hortelã</option><option>Reforço do fundo de maneio</option></datalist>
+  <button class="btn">Registar</button></form>
+  ${D.today_moves.length?`<h3>Hoje</h3><div class="card">${D.today_moves.map(m=>`<div class="row"><div class="n">${e(m.description)}<small>${e(m.name||"")} · ${e(m.at)}</small></div><b style="color:${m.kind==="saida"?"var(--warn)":"var(--ok)"}">${m.kind==="saida"?"−":"+"}${eur(m.amount)}</b></div>`).join("")}</div>`:""}`;
+}
+function vGoods(){
+  const sup=[...new Set(D.items.map(i=>i.supplier).filter(Boolean))];
+  app.innerHTML=`<h2>Mercadoria recebida</h2>${fl()}<form data-f="goods">
+  <label>O que chegou?<textarea name="description" required placeholder="ex.: lixívia, detergente da louça, água"></textarea></label>
+  <div class="split"><label>Nº da fatura <span class="opt">(opcional)</span><input name="invoice_no"></label>
+  <label>Fornecedor <span class="opt">(opcional)</span><input name="supplier" list="sup"></label></div>
+  <datalist id="sup">${sup.map(s=>`<option>${e(s)}</option>`).join("")}</datalist>
+  <p class="mute">A data, a hora e quem recebeu ficam registadas sozinhas.</p><button class="btn">Registar</button></form>`;
+}
+function vRequest(){
+  const mine=isAdmin()?[]:D.requests.slice(0,6);
+  app.innerHTML=`<h2>Pedidos</h2>${fl()}<form data-f="request"><label>Tipo de pedido<select name="type" required><option value="">Escolhe…</option><option>Férias</option><option>Folga</option><option>Troca de turno</option></select></label>
+  <label>Datas<input name="dates" required placeholder="ex.: 12 a 15 de dezembro"></label>
+  <label>Troca com quem? <span class="opt">(só para trocas)</span><select name="swap_with"><option value="">—</option>${D.staff.filter(s=>s.name!==D.user.name).map(s=>`<option>${e(s.name)}</option>`).join("")}</select></label>
+  <label>Observações <span class="opt">(opcional)</span><textarea name="note"></textarea></label>${extra("request")}<button class="btn">Enviar pedido</button></form>
+  ${mine.length?`<h3>Os meus pedidos</h3><div class="card">${mine.map(r=>`<div class="row"><div class="n">${e(r.type)} · ${e(r.dates)}<small>${lis(r.created_at)}</small></div><span class="tag ${r.status==="aprovado"?"ok":r.status==="recusado"?"bad":"na"}">${e(r.status)}</span></div>`).join("")}</div>`:""}`;
+}
+function vSchedule(){
+  const s=D.schedule.filter(x=>x.day>=D.today);
+  app.innerHTML=`<h2>Escala</h2>${groups(s,"day").map(([d,l])=>`<div class="card"><b>${e(dayL(d))}</b>${l.map(x=>`<div class="row"><div class="n">${e(x.shift)} <span class="mute">${HORAS[x.shift]}</span></div><b>${e(x.name)}</b></div>`).join("")}</div>`).join("")||'<div class="card mute">A escala ainda não está preenchida.</div>'}`;
+}
+
+const TABS=[["shifts","Turnos"],["stock","Stock"],["alerts","Avisos"],["requests","Pedidos"],["schedule","Escala"],["cash","Caixa"],["goods","Mercadoria"],["maps","Mapas"],["items","Artigos"],["lists","Listas"],["questions","Perguntas"],["team","Equipa"]];
+function vAdmin(){
+  app.innerHTML=`<h2>Gestão</h2><div class="tabs" role="tablist">${TABS.map(([k,l])=>`<button role="tab" aria-selected="${tab===k}" class="${tab===k?"on":""}" data-a="tab" data-t="${k}">${l}</button>`).join("")}</div>${fl()}<div id="tabc">${({shifts:aShifts,stock:aStock,alerts:aAlerts,requests:aRequests,schedule:aSchedule,cash:aCash,goods:aGoods,maps:aMaps,items:aItems,lists:aLists,questions:aQuestions,team:aTeam})[tab]()}</div>`;
+}
+function aShifts(){
+  if(edit&&edit.k==="shift"){const s=edit.v;return `<form class="card" data-f="shiftedit"><b>Corrigir turno · ${e(s.name)} · ${e(dayL(s.day))}</b><input type="hidden" name="id" value="${s.id}">
+  <label>Turno<select name="shift">${["Manhã","Noite"].map(t=>`<option ${s.shift===t?"selected":""}>${t}</option>`).join("")}</select></label>
+  <div class="split"><label>Entrada<input type="time" name="opened" value="${e(s.opened)}"></label><label>Saída<input type="time" name="closed" value="${e(s.closed||"")}"></label></div>
+  <div class="three"><label>TPA<input name="tpa" inputmode="decimal" value="${s.tpa??""}"></label><label>TOC<input name="toc" inputmode="decimal" value="${s.toc??""}"></label><label>Total vendas<input name="sales_total" inputmode="decimal" value="${s.sales_total??""}"></label></div>
+  <label>Recado<textarea name="note">${e(s.note||"")}</textarea></label>
+  <button class="btn">Guardar</button><button type="button" class="btn sec" data-a="cancel">Cancelar</button><button type="button" class="btn sec" style="color:var(--warn);border-color:var(--warn)" data-a="delshift" data-id="${s.id}">Apagar este turno</button></form>`}
+  return D.shifts.map(s=>{const t=s.tips;return `<div class="card"><div class="two"><b>${e(s.shift)} · ${e(s.name)}</b><span class="mute">${e(dayL(s.day))}</span></div>
+  <div class="mute">${e(s.opened)} → ${s.closed?e(s.closed):'<span class="tag bad">ainda aberto</span>'}</div>
+  ${s.closed?`<div class="row"><div class="n">TPA ${eur(s.tpa)} · TOC ${eur(s.toc)}</div><span>Vendas <b>${eur(s.sales_total)}</b></span></div>
+  <div class="row"><div class="n">${t<0?"Diferença de caixa":"Gratificação"}</div><span class="tag ${t<0?"bad":"ok"}">${eur(t)}</span></div>`:""}
+  ${s.note?`<div><b>Recado:</b> ${e(s.note)}</div>`:""}${ansHtml(s.answers)}
+  ${s.counts.length?`<details><summary>Contagem (${s.counts.length})</summary>${s.counts.map(x=>`<div class="row"><div class="n">${e(x.item)}</div><span>${x.level?LV[x.level]:`${x.qty} ${e(x.unit||"")}`}</span></div>`).join("")}</details>`:""}
+  ${(s.open_checks.length||s.close_checks.length)?`<details><summary>Listas</summary><div class="mute">Abertura: ${s.open_checks.length}/${checks("abertura").length} · Fecho: ${s.close_checks.length}/${checks("fecho").length}</div></details>`:""}
+  <p style="margin:10px 0 0"><button class="sm" data-a="editshift" data-id="${s.id}">Corrigir</button></p></div>`}).join("")||'<div class="card mute">Ainda não há turnos.</div>';
+}
+function aStock(){
+  const act=D.items.filter(i=>i.active),bad=act.filter(i=>need(i)==="bad");
+  return `<h3>A encomendar (${bad.length})</h3>${bad.length?groups(bad,"supplier").map(([s,it])=>`<div class="card"><b>${e(s)}</b>${it.map(i=>`<div class="row"><div class="n">${e(i.name)}</div><span class="mute">${i.mode==="level"?LV[i.level]:`${i.current_stock} de mín. ${i.min_stock}`}</span></div>`).join("")}</div>`).join(""):'<div class="card mute">Nada a encomendar com as contagens que existem.</div>'}
+  <h3>Stock atual</h3><p class="mute">Atualiza-se sozinho em cada fecho de turno. Podes corrigir aqui.</p>${groups(act,"category").map(([g,it])=>`<div class="card"><b>${e(g)}</b>${it.map(i=>`<div class="row"><div class="n">${e(i.name)}<small>${i.mode==="number"?`mínimo ${i.min_stock??"por definir"} ${e(i.unit)}`:"por nível"}</small></div>${tagOf(i)}
+  ${i.mode==="number"?`<input class="q" aria-label="Stock de ${e(i.name)}" inputmode="numeric" value="${i.current_stock??""}" data-stock="${i.id}">`:`<select aria-label="Nível de ${e(i.name)}" data-level="${i.id}" style="width:130px"><option value="">—</option>${Object.entries(LV).map(([k,l])=>`<option value="${k}" ${i.level===k?"selected":""}>${l}</option>`).join("")}</select>`}</div>`).join("")}</div>`).join("")}`;
+}
+function aAlerts(){return D.alerts.map(a=>`<div class="card"><div class="two"><b>${e(a.item)}</b><span class="tag ${a.resolved?"ok":"bad"}">${a.resolved?"Tratado":"Por tratar"}</span></div><div class="mute">${e(a.name||"")} · ${lis(a.created_at)}</div>${a.note?`<div>${e(a.note)}</div>`:""}${ansHtml(a.answers)}
+  <p style="margin:10px 0 0"><button class="sm" data-a="resolve" data-id="${a.id}" data-r="${a.resolved?0:1}">${a.resolved?"Reabrir":"Marcar como tratado"}</button></p></div>`).join("")||'<div class="card mute">Sem avisos.</div>'}
+function aRequests(){return D.requests.map(r=>`<div class="card"><div class="two"><b>${e(r.type)} · ${e(r.name||"")}</b><span class="tag ${r.status==="aprovado"?"ok":r.status==="recusado"?"bad":"na"}">${e(r.status)}</span></div>
+  <div>${e(r.dates)}${r.swap_with?` · troca com ${e(r.swap_with)}`:""}</div>${r.note?`<div>${e(r.note)}</div>`:""}${ansHtml(r.answers)}<div class="mute">${lis(r.created_at)}</div>
+  <p style="margin:10px 0 0;display:flex;gap:8px"><button class="sm go" data-a="decide" data-id="${r.id}" data-s="aprovado">Aprovar</button><button class="sm no" data-a="decide" data-id="${r.id}" data-s="recusado">Recusar</button></p></div>`).join("")||'<div class="card mute">Sem pedidos.</div>'}
+function aSchedule(){const st=D.users.filter(u=>u.active&&u.role==="staff");
+  return `<form class="card" data-f="schedule"><b>Marcar turno</b><div class="split"><label>Dia<input type="date" name="day" required></label><label>Turno<select name="shift"><option>Manhã</option><option>Noite</option></select></label></div>
+  <label>Quem<select name="user_id" required>${st.map(u=>`<option value="${u.id}">${e(u.name)}</option>`).join("")}</select></label><button class="btn">Guardar</button><p class="mute">Se o turno já tiver alguém, troca a pessoa.</p></form>
+  ${groups(D.schedule,"day").map(([d,l])=>`<div class="card"><b>${e(dayL(d))}</b>${l.map(x=>`<div class="row"><div class="n">${e(x.shift)}</div><b>${e(x.name)}</b><button class="sm no" data-a="delsched" data-id="${x.id}" aria-label="Apagar">Apagar</button></div>`).join("")}</div>`).join("")||'<div class="card mute">Escala vazia.</div>'}`}
+const curMonth=()=>D.today.slice(0,7);
+function monthPick(){return `<label>Mês<input type="month" data-ml value="${mlMonth||curMonth()}"></label>`}
+function aCash(){
+  if(!ML)return `${monthPick()}<p class="center">A carregar…</p>`;
+  const sal=ML.moves.reduce((a,m)=>a+(m.kind==="entrada"?1:-1)*m.amount,0);
+  return `${monthPick()}<div class="card"><div class="two"><b>Saídas e entradas do mês</b><b>${eur(sal)}</b></div></div>
+  ${ML.moves.map(m=>`<div class="row"><div class="n">${e(m.description)}<small>${e(dayL(m.day))} · ${e(m.name||"")}</small></div><b style="color:${m.kind==="saida"?"var(--warn)":"var(--ok)"}">${m.kind==="saida"?"−":"+"}${eur(m.amount)}</b><button class="sm no" data-a="delcash" data-id="${m.id}">Apagar</button></div>`).join("")||'<div class="card mute">Sem movimentos neste mês.</div>'}
+  <form class="card" data-f="opening" style="margin-top:14px"><b>Saldo inicial do fundo de maneio</b><p class="mute">O valor que havia antes do primeiro movimento registado na app (o "Transporte" do teu mapa).</p>
+  <label>Valor (€)<input name="value" inputmode="decimal" value="${D.cash_opening??0}"></label><button class="btn sec">Guardar saldo inicial</button></form>`;
+}
+function aGoods(){
+  if(!ML)return `${monthPick()}<p class="center">A carregar…</p>`;
+  return `${monthPick()}${ML.goods.map(g=>`<div class="card"><div class="two"><b>${e(g.description)}</b><button class="sm no" data-a="delgoods" data-id="${g.id}">Apagar</button></div><div class="mute">${e(dayL(g.day))} às ${e(g.at)} · ${e(g.name||"")}${g.invoice_no?` · fatura ${e(g.invoice_no)}`:""}${g.supplier?` · ${e(g.supplier)}`:""}</div></div>`).join("")||'<div class="card mute">Sem mercadoria registada neste mês.</div>'}`;
+}
+function aMaps(){
+  return `<div class="card"><b>Mapas mensais para o Porto</b><p class="mute">Um ficheiro Excel com seis folhas: horas, fecho do dia, gratificação, movimentos de caixa, registo de mercadorias e horário. Sai tudo do que foi registado nos turnos.</p>
+  <form data-f="maps"><label>Mês<input type="month" name="month" value="${mlMonth||curMonth()}" required></label><button class="btn">Descarregar Excel</button></form></div>`;
+}
+function aItems(){
+  if(edit&&edit.k==="item"){const i=edit.v;return `<form class="card" data-f="item"><b>${i.id?"Editar artigo":"Novo artigo"}</b><input type="hidden" name="id" value="${i.id||""}">
+  <label>Nome<input name="name" value="${e(i.name||"")}" required></label><div class="split"><label>Categoria<input name="category" value="${e(i.category||"")}"></label><label>Fornecedor<input name="supplier" value="${e(i.supplier||"")}"></label></div>
+  <label>Como se conta no fecho<select name="mode"><option value="number" ${i.mode!=="level"?"selected":""}>Em número</option><option value="level" ${i.mode==="level"?"selected":""}>Bastante / Pouco / Acabou</option></select></label>
+  <div class="split"><label>Unidade<input name="unit" value="${e(i.unit||"un")}"></label><label>Stock mínimo<input name="min_stock" inputmode="numeric" value="${i.min_stock??""}"></label></div>
+  ${i.id?`<label>Estado<select name="active"><option value="true" ${i.active?"selected":""}>Ativo</option><option value="false" ${i.active?"":"selected"}>Desativado (deixa de aparecer)</option></select></label>`:""}
+  <button class="btn">Guardar</button><button type="button" class="btn sec" data-a="cancel">Cancelar</button></form>`}
+  return `<button class="btn" style="margin:0 0 14px" data-a="newitem">Novo artigo</button>${groups(D.items,"category").map(([g,it])=>`<div class="card"><b>${e(g)}</b>${it.map(i=>`<div class="row"><div class="n">${e(i.name)}${i.active?"":' <span class="tag na">desativado</span>'}<small>${e(i.supplier||"")} · ${i.mode==="number"?`mín. ${i.min_stock??"—"} ${e(i.unit)}`:"por nível"}</small></div><button class="sm" data-a="edititem" data-id="${i.id}">Editar</button></div>`).join("")}</div>`).join("")}`;
+}
+function aLists(){
+  if(edit&&edit.k==="check"){const c=edit.v;return `<form class="card" data-f="check"><b>${c.id?"Editar passo":"Novo passo"}</b><input type="hidden" name="id" value="${c.id||""}">
+  <label>Lista<select name="kind"><option value="abertura" ${c.kind==="abertura"?"selected":""}>Abertura</option><option value="fecho" ${c.kind==="fecho"?"selected":""}>Fecho</option></select></label>
+  <label>O que fazer<input name="label" value="${e(c.label||"")}" required></label><button class="btn">Guardar</button><button type="button" class="btn sec" data-a="cancel">Cancelar</button></form>`}
+  return `<p class="mute">Os passos que cada empregado pica ao abrir e ao fechar o turno.</p>${["abertura","fecho"].map(k=>`<div class="card"><b>${k==="abertura"?"Abertura":"Fecho"}</b>${checks(k).map((c,i,a)=>`<div class="row"><div class="n">${e(c.label)}</div>
+  <button class="sm" data-a="mvcheck" data-id="${c.id}" data-d="up" ${i?"":"disabled"} aria-label="Subir">↑</button><button class="sm" data-a="mvcheck" data-id="${c.id}" data-d="down" ${i<a.length-1?"":"disabled"} aria-label="Descer">↓</button>
+  <button class="sm" data-a="editcheck" data-id="${c.id}">Editar</button><button class="sm no" data-a="delcheck" data-id="${c.id}">Apagar</button></div>`).join("")||'<div class="mute">Sem passos.</div>'}
+  <p style="margin:10px 0 0"><button class="sm" data-a="newcheck" data-k="${k}">+ Novo passo</button></p></div>`).join("")}`;
+}
+function aQuestions(){
+  if(edit&&edit.k==="q"){const q=edit.v;return `<form class="card" data-f="question"><b>${q.id?"Editar pergunta":"Nova pergunta"}</b><input type="hidden" name="id" value="${q.id||""}">
+  <label>Onde aparece<select name="form">${Object.entries(FORMS).map(([k,l])=>`<option value="${k}" ${q.form===k?"selected":""}>${l}</option>`).join("")}</select></label>
+  <label>Pergunta<input name="label" value="${e(q.label||"")}" required></label>
+  <label>Tipo de resposta<select name="type">${[["text","Texto curto"],["longtext","Texto longo"],["number","Número"],["choice","Escolha de uma lista"]].map(([k,l])=>`<option value="${k}" ${q.type===k?"selected":""}>${l}</option>`).join("")}</select></label>
+  <label>Opções da lista <span class="opt">(separadas por vírgulas, só para escolha)</span><input name="options" value="${e((q.options||[]).join(", "))}"></label>
+  <label>Obrigatória?<select name="required"><option value="false">Não</option><option value="true" ${q.required?"selected":""}>Sim</option></select></label>
+  <button class="btn">Guardar</button><button type="button" class="btn sec" data-a="cancel">Cancelar</button></form>`}
+  return `<p class="mute">Perguntas a mais que acrescentas aos formulários. Aparecem logo a todos.</p><button class="btn" style="margin:0 0 14px" data-a="newq">Nova pergunta</button>
+  ${Object.entries(FORMS).map(([k,l])=>{const qs=D.questions.filter(q=>q.form===k);return `<div class="card"><b>${l}</b>${qs.map(q=>`<div class="row"><div class="n">${e(q.label)}<small>${q.required?"obrigatória":"opcional"}</small></div><button class="sm" data-a="editq" data-id="${q.id}">Editar</button><button class="sm no" data-a="delq" data-id="${q.id}">Apagar</button></div>`).join("")||'<div class="mute">Sem perguntas extra.</div>'}</div>`}).join("")}`;
+}
+function aTeam(){
+  if(edit&&edit.k==="user"){const u=edit.v;return `<form class="card" data-f="user"><b>${u.id?e(u.name):"Nova pessoa"}</b><input type="hidden" name="id" value="${u.id||""}">
+  <label>Nome<input name="name" value="${e(u.name||"")}" required></label>
+  <label>${u.has_pin?"Novo código":"Código"} (4 a 8 algarismos) ${u.has_pin?'<span class="opt">deixa vazio para manter</span>':""}<input class="pin" name="pin" type="password" inputmode="numeric" pattern="[0-9]{4,8}" autocomplete="new-password" ${u.id?"":"required"}></label>
+  ${u.id&&u.id!==D.user.id?`<label>Estado<select name="active"><option value="true" ${u.active?"selected":""}>Ativo</option><option value="false" ${u.active?"":"selected"}>Desativado (deixa de entrar)</option></select></label>`:""}
+  <button class="btn">Guardar</button><button type="button" class="btn sec" data-a="cancel">Cancelar</button></form>`}
+  return `<p class="mute">Cada pessoa entra com o seu código. Quem não tem código não aparece no ecrã de entrada.</p><div class="card">${D.users.map(u=>`<div class="row"><div class="n">${e(u.name)}<small>${u.role==="admin"?"Gestor":"Empregado"}${u.active?"":" · desativado"}</small></div><span class="tag ${u.has_pin?"ok":"bad"}">${u.has_pin?"Com código":"Sem código"}</span><button class="sm" data-a="edituser" data-id="${u.id}">Editar</button></div>`).join("")}</div><button class="btn" data-a="newuser">Nova pessoa</button>`;
+}
+
+async function loadML(){ML=null;render();const r=await api("month_lists",{month:(mlMonth||curMonth())+"-01"});if(r.error){flash={t:"err",m:r.error};ML={moves:[],goods:[]}}else ML=r;if(view==="admin"&&(tab==="cash"||tab==="goods"))render()}
+let xlsxP=null;
+function loadXLSX(){return xlsxP||(xlsxP=new Promise((ok,no)=>{const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";s.onload=()=>ok(window.XLSX);s.onerror=()=>{xlsxP=null;no()};document.head.appendChild(s)}))}
+const hrs=(a,b)=>{if(!a||!b)return null;return r2((new Date(b)-new Date(a))/36e5)};
+function buildMaps(R){
+  const X=window.XLSX,[y,m]=R.month.split("-").map(Number),nd=new Date(y,m,0).getDate(),mes=MESES[m-1],people=R.users.map(u=>u.name);
+  const days=[...Array(nd)].map((_,i)=>{const d=i+1;return {d,iso:`${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`,wd:DIAS[new Date(y,m-1,d).getDay()]}});
+  const by=(arr,f)=>{const o={};arr.forEach(x=>{const k=f(x);(o[k]=o[k]||[]).push(x)});return o};
+  const sh=by(R.shifts,s=>s.day),wb=X.utils.book_new(),add=(name,aoa,cols)=>{const ws=X.utils.aoa_to_sheet(aoa);if(cols)ws["!cols"]=cols.map(w=>({wch:w}));X.utils.book_append_sheet(wb,ws,name)};
+  // 1. Horas
+  const H=[[],[]],W=6;people.forEach((p,i)=>{H[0][i*W+1]=`MAPA DE HORAS ${mes} - ${p.toUpperCase()}`;["DIA","ENTRADA","SAIDA","TOTAL"].forEach((t,j)=>H[1][i*W+1+j]=t)});
+  days.forEach(dd=>{const row=[];people.forEach((p,i)=>{const l=(sh[dd.iso]||[]).filter(s=>s.name===p);row[i*W]=dd.wd;row[i*W+1]=dd.d;
+    if(l.length){row[i*W+2]=l.map(s=>s.opened).join(" / ");row[i*W+3]=l.map(s=>s.closed||"").join(" / ");const t=l.reduce((a,s)=>a+(hrs(s.opened_at,s.closed_at)||0),0);row[i*W+4]=t?r2(t):null}});H.push(row)});
+  const tot=[];people.forEach((p,i)=>{tot[i*W+1]="TOTAL mês";tot[i*W+4]=r2(R.shifts.filter(s=>s.name===p).reduce((a,s)=>a+(hrs(s.opened_at,s.closed_at)||0),0))});H.push([],tot);
+  add("APURAMENTOS HORAS",H,people.flatMap(()=>[14,5,10,10,8,3]));
+  // 2. Fecho do dia
+  const mv=by(R.moves,x=>x.day),F=[[`MÊS - ${mes} ${y}`],[],["Dia","Turno Manhã","","","Turno Noite","","","Saídas de Caixa","Turno Manhã","","","Turno Noite","","","Observações"],
+    ["","TPA","TOC","Total","TPA","TOC","Total","Total","Func","Entrada","Saída","Func","Entrada","Saída",""]];
+  let sM=0,sN=0,sS=0;
+  days.forEach(dd=>{const l=sh[dd.iso]||[],a=l.find(s=>s.shift==="Manhã")||{},b=l.find(s=>s.shift==="Noite")||{},out=(mv[dd.iso]||[]).filter(x=>x.kind==="saida"),so=r2(out.reduce((q,x)=>q+Number(x.amount),0));
+    sM+=Number(a.sales_total||0);sN+=Number(b.sales_total||0);sS+=so;
+    F.push([dd.d,a.tpa??null,a.toc??null,a.sales_total??null,b.tpa??null,b.toc??null,b.sales_total??null,so||null,a.name||null,a.opened||null,a.closed||null,b.name||null,b.opened||null,b.closed||null,
+      [...l.map(s=>s.note).filter(Boolean),...out.map(x=>`${x.description} ${Number(x.amount).toFixed(2)}€`)].join(" · ")||null])});
+  F.push([],["Total","","",r2(sM),"","",r2(sN),r2(sS)],["Total do mês (vendas)","","",r2(sM+sN)]);
+  add("FECHO DO DIA",F,[6,9,9,9,9,9,9,10,11,8,8,11,8,8,40]);
+  // 3. Gratificação
+  const G=[[`Gratificação ${mes}`],["","Dia",...people.flatMap(p=>[p,"Dif caixa"])]],gT=people.map(()=>[0,0]);
+  days.forEach(dd=>{const row=[dd.wd,dd.d];people.forEach((p,i)=>{const t=(sh[dd.iso]||[]).filter(s=>s.name===p&&s.tips!=null).reduce((a,s)=>a+Number(s.tips),0);
+    const g=t>0?r2(t):null,dif=t<0?r2(-t):null;row.push(g,dif);gT[i][0]+=g||0;gT[i][1]+=dif||0});G.push(row)});
+  G.push([],["","TOTAL",...gT.flatMap(([a,b])=>[r2(a),r2(b)])],["A Receber","",...gT.flatMap(([a,b])=>[r2(a-b),""])]);
+  add("GRATIFICACÃO",G,[14,5,...people.flatMap(()=>[10,9])]);
+  // 4. Movimentos de caixa
+  let bal=Number(R.opening||0);const M=[["Movimentos de Caixa"],[`Mês: ${mes} ${y}`],[],["Data","Entrada","Saída","Descrição","Saldo"],["","","","Transporte",r2(bal)]];
+  R.moves.forEach(x=>{const a=Number(x.amount);bal+=x.kind==="entrada"?a:-a;M.push([x.day.split("-").reverse().join("/"),x.kind==="entrada"?a:null,x.kind==="saida"?a:null,x.description,r2(bal)])});
+  add("Mov Caixa",M,[12,10,10,36,10]);
+  // 5. Registo de mercadorias
+  const RM=[[],[],["Data","Hora","Descrição do Produto / Nome do Fornecedor","Temperatura (ºC)","Fornecedor Lote Produto ou Nº Factura","Integridade do Produto","Rotulo e Embalagem","Recebido por:"]];
+  R.goods.forEach(g=>RM.push([g.day.split("-").reverse().join("/"),g.at,g.description+(g.supplier?` (${g.supplier})`:""),"*",g.invoice_no?`Fact - ${g.invoice_no}`:"","*","*",g.name||""]));
+  add("REG MERCADORIAS",RM,[12,7,42,10,22,10,10,14]);
+  // 6. Horário
+  const sc=by(R.schedule,x=>x.day),HO=[[`HORÁRIO ${mes} ${y}`],[],["","Dia",...people.map(p=>p.toUpperCase())]];
+  days.forEach(dd=>HO.push([dd.wd,dd.d,...people.map(p=>(sc[dd.iso]||[]).filter(x=>x.name===p).map(x=>HORAS[x.shift]).join(" + ")||null)]));
+  add("Horário",HO,[14,5,...people.map(()=>12)]);
+  X.writeFile(wb,`Mapas_${mes}_${y}.xlsx`);
+}
+
+async function act(action,payload,okMsg){
+  if(busy)return false;busy=true;const r=await api(action,payload);busy=false;
+  if(r.error){flash={t:"err",m:r.error};if(!token){boot();return false}render();return false}
+  if(okMsg)flash={t:"good",m:okMsg};return true;
+}
+const after=()=>(tab==="cash"||tab==="goods")&&view==="admin"?loadML():load();
+document.addEventListener("click",async ev=>{
+  const b=ev.target.closest("[data-a]");if(!b||b.disabled)return;const a=b.dataset.a,id=b.dataset.id;
+  if(a==="reload")return boot();
+  if(a==="pick"){pick={id,name:b.dataset.name};return boot()}
+  if(a==="unpick"){pick=null;return boot()}
+  if(a==="logout"){await api("logout");token=null;store.set("tto_token",null);D=null;pick=null;view="home";return boot()}
+  if(a==="go"){view=b.dataset.v;edit=null;if(view==="home"||view==="admin"){if(view==="admin"&&(tab==="cash"||tab==="goods"))loadML();return load()}return render()}
+  if(a==="tab"){tab=b.dataset.t;edit=null;if(tab==="cash"||tab==="goods")return loadML();return render()}
+  if(a==="cancel"){edit=null;return render()}
+  const find=(arr)=>arr.find(x=>x.id===id);
+  if(a==="editshift"){edit={k:"shift",v:find(D.shifts)};return render()}
+  if(a==="newitem"){edit={k:"item",v:{mode:"number",unit:"un",active:true}};return render()}
+  if(a==="edititem"){edit={k:"item",v:find(D.items)};return render()}
+  if(a==="newcheck"){edit={k:"check",v:{kind:b.dataset.k}};return render()}
+  if(a==="editcheck"){edit={k:"check",v:find(D.checklist)};return render()}
+  if(a==="newq"){edit={k:"q",v:{form:"closing",type:"text"}};return render()}
+  if(a==="editq"){edit={k:"q",v:find(D.questions)};return render()}
+  if(a==="newuser"){edit={k:"user",v:{}};return render()}
+  if(a==="edituser"){edit={k:"user",v:find(D.users)};return render()}
+  const C=(msg,act2,p,ok)=>confirm(msg)&&act(act2,p,ok).then(x=>x&&(edit=null,after()));
+  if(a==="delshift")return C("Apagar este turno? As horas e valores dele desaparecem dos mapas.","shift_delete",{id},"Turno apagado.");
+  if(a==="delq")return C("Apagar esta pergunta?","question_delete",{id},"Pergunta apagada.");
+  if(a==="delcheck")return C("Apagar este passo da lista?","check_delete",{id},"Passo apagado.");
+  if(a==="delsched")return C("Apagar este turno da escala?","schedule_delete",{id},"Turno apagado da escala.");
+  if(a==="delcash")return C("Apagar este movimento de caixa?","cash_delete",{id},"Movimento apagado.");
+  if(a==="delgoods")return C("Apagar este registo de mercadoria?","goods_delete",{id},"Registo apagado.");
+  if(a==="mvcheck"){if(await act("check_move",{id,dir:b.dataset.d}))load();return}
+  if(a==="resolve"){if(await act("alert_resolve",{id,resolved:b.dataset.r==="1"}))load();return}
+  if(a==="decide"){if(await act("request_decide",{id,status:b.dataset.s},"Pedido "+b.dataset.s+"."))load();return}
+});
+document.addEventListener("input",ev=>{const f=ev.target.form;if(f&&f.dataset.f==="close"&&["tpa","toc","sales_total"].includes(ev.target.name))updTips(f)});
+document.addEventListener("change",async ev=>{
+  const t=ev.target;
+  if(t.dataset.ml!==undefined){mlMonth=t.value||null;return loadML()}
+  if(t.dataset.stock){const v=num(t.value);if(t.value.trim()!==""&&(v==null||v<0)){t.value="";return}if(await act("stock_set",{id:t.dataset.stock,current_stock:v==null?"":String(v)},"Stock atualizado."))load()}
+  if(t.dataset.level){if(await act("stock_set",{id:t.dataset.level,level:t.value},"Stock atualizado."))load()}
+});
+function inlineErr(f,m){flash={t:"err",m};const old=f.querySelector(".msg");const d=document.createElement("div");d.innerHTML=fl();old?old.replaceWith(d.firstChild):f.prepend(d.firstChild);window.scrollTo(0,0)}
+document.addEventListener("submit",async ev=>{
+  ev.preventDefault();const f=ev.target,k=f.dataset.f,fd=new FormData(f),g=n=>(fd.get(n)||"").toString().trim(),btn=f.querySelector("button.btn:not([type=button])");
+  if(busy)return;if(btn)btn.disabled=true;const done=()=>{if(btn)btn.disabled=false};
+  const ticked=fd.getAll("chk").map(String);
+  const allTicked=kind=>ticked.length>=checks(kind).length||confirm(`Faltam ${checks(kind).length-ticked.length} passos da lista. Continuar mesmo assim?`);
+  if(k==="setup"){if(g("pin")!==g("pin2")){flash={t:"err",m:"Os dois códigos não são iguais."};return boot()}
+    const r=await api("setup",{pin:g("pin")});if(r.error){flash={t:"err",m:r.error};return boot()}token=r.token;store.set("tto_token",token);view="admin";tab="team";flash={t:"good",m:"Código guardado. Agora dá um código a cada empregado."};return load()}
+  if(k==="login"){const r=await api("login",{user_id:pick.id,pin:g("pin")});if(r.error){flash={t:"err",m:r.error};return boot()}token=r.token;store.set("tto_token",token);pick=null;view="home";return load()}
+  if(k==="open"){if(!allTicked("abertura"))return done();if(await act("shift_open",{shift:g("shift"),checks:ticked},"Turno aberto. Bom trabalho!")){view="home";return load()}return done()}
+  if(k==="close"){
+    const tpa=num(g("tpa")),toc=num(g("toc"))||0,sal=num(g("sales_total"));
+    if(tpa==null||sal==null){inlineErr(f,"O TPA e o total de vendas têm de ser números, por exemplo 245,50.");return done()}
+    if(!allTicked("fecho"))return done();
+    const counts=[],missing=[];
+    D.items.filter(i=>i.active).forEach(i=>{const v=g("c_"+i.id);if(i.mode==="number"){const q=num(v);if(q==null||q<0)missing.push(i.name);else counts.push({item_id:i.id,qty:q})}else{if(!v)missing.push(i.name);else counts.push({item_id:i.id,level:v})}});
+    if(missing.length&&!confirm(`Faltam ${missing.length} artigos por contar (${missing.slice(0,4).join(", ")}${missing.length>4?"…":""}). Fechar mesmo assim?`))return done();
+    const tips=r2(tpa+toc-sal);
+    if(await act("shift_close",{tpa:String(tpa),toc:String(toc),sales_total:String(sal),note:g("note"),counts,answers:answers("closing",fd),checks:ticked},
+      tips<0?`Turno fechado. Diferença de caixa de ${eur(tips)}.`:`Turno fechado. Gratificação de ${eur(tips)}. Bom descanso!`)){view="home";return load()}return done()}
+  if(k==="alert"){if(await act("alert",{item_id:g("item_id"),note:g("note"),answers:answers("alert",fd)},"Aviso enviado. Obrigado!")){view="home";return load()}return done()}
+  if(k==="cash"){const v=num(g("amount"));if(v==null||v<=0){inlineErr(f,"O valor tem de ser um número maior que zero.");return done()}
+    if(await act("cash_move",{kind:g("kind"),amount:String(v),description:g("description")},"Movimento registado.")){return load()}return done()}
+  if(k==="goods"){if(await act("goods",{description:g("description"),invoice_no:g("invoice_no"),supplier:g("supplier")},"Mercadoria registada.")){view="home";return load()}return done()}
+  if(k==="request"){if(await act("request",{type:g("type"),dates:g("dates"),swap_with:g("swap_with"),note:g("note"),answers:answers("request",fd)},"Pedido enviado.")){view="home";return load()}return done()}
+  if(k==="schedule"){if(await act("schedule_save",{day:g("day"),shift:g("shift"),user_id:g("user_id")},"Turno marcado."))return load();return done()}
+  if(k==="shiftedit"){const p={id:g("id"),shift:g("shift"),opened:g("opened"),closed:g("closed"),note:g("note")};
+    for(const n of ["tpa","toc","sales_total"]){const raw=g(n),v=num(raw);if(raw&&v==null){inlineErr(f,"Os valores têm de ser números.");return done()}p[n]=v==null?"":String(v)}
+    if(await act("shift_edit",p,"Turno corrigido.")){edit=null;return load()}return done()}
+  if(k==="opening"){const v=num(g("value"));if(v==null){inlineErr(f,"O valor tem de ser um número.");return done()}if(await act("cash_opening",{value:String(v)},"Saldo inicial guardado.")){await load();return loadML()}return done()}
+  if(k==="maps"){mlMonth=g("month");const r=await api("report",{month:g("month")+"-01"});if(r.error){done();return inlineErr(f,r.error)}
+    try{await loadXLSX();buildMaps(r);flash={t:"good",m:"Ficheiro descarregado."}}catch(_){flash={t:"err",m:"Não foi possível criar o Excel. Verifica a internet e tenta de novo."}}done();return render()}
+  if(k==="item"){const p={id:g("id"),name:g("name"),category:g("category"),supplier:g("supplier"),unit:g("unit"),mode:g("mode"),min_stock:num(g("min_stock"))==null?"":String(num(g("min_stock")))};
+    if(g("id"))p.active=g("active")!=="false";if(await act("item_save",p,"Artigo guardado.")){edit=null;return load()}return done()}
+  if(k==="check"){if(await act("check_save",{id:g("id"),kind:g("kind"),label:g("label")},"Passo guardado.")){edit=null;return load()}return done()}
+  if(k==="question"){const p={id:g("id"),form:g("form"),label:g("label"),type:g("type"),required:g("required")==="true",options:g("options").split(",").map(s=>s.trim()).filter(Boolean)};
+    if(p.type==="choice"&&p.options.length<2){inlineErr(f,"Uma lista precisa de pelo menos duas opções.");return done()}
+    if(await act("question_save",p,"Pergunta guardada.")){edit=null;return load()}return done()}
+  if(k==="user"){const p={id:g("id"),name:g("name"),pin:g("pin")};if(fd.has("active"))p.active=g("active")!=="false";
+    if(await act("user_save",p,"Guardado.")){edit=null;return load()}return done()}
+});
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+boot();
+</script>
+</body>
+</html>
