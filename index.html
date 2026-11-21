@@ -238,7 +238,7 @@ function vRequest(){
 function vRecipes(){
   if(!REC){app.innerHTML=`<h2>Receitas</h2><p class="center">A carregar…</p>`;return}
   const q=recQ.trim().toLowerCase(),L=REC.filter(x=>x.status==="ativa"&&(!q||[x.name,x.ingredients,x.porto].join(" ").toLowerCase().includes(q)));
-  app.innerHTML=`<h2>Receitas</h2>${fl()}${INTRO&&!q?`<details class="card" open><summary><b>Os vinhos da Taylor's</b> <span class="mute">· toca para fechar</span></summary>${introHtml(INTRO)}</details>`:""}<label>Procurar<input data-recq value="${e(recQ)}" placeholder="nome, ingrediente ou Porto"></label>
+  app.innerHTML=`<h2>Receitas</h2>${fl()}${INTRO&&!q?`<details class="card"><summary><b>Os vinhos da Taylor's</b> <span class="mute">· toca para abrir</span></summary>${introHtml(INTRO)}</details>`:""}<label>Procurar<input data-recq value="${e(recQ)}" placeholder="nome, ingrediente ou Porto"></label>
   ${bySeason(L).map(([s,l])=>`<h3>${e(s)}</h3>${l.map(x=>`<details class="card"><summary><div class="two" style="display:inline-flex;width:calc(100% - 20px)"><b>${e(x.name)}</b><b>${x.price!=null?eur(x.price):""}</b></div><div class="mute">${[x.season,x.porto].filter(Boolean).map(e).join(" · ")}</div></summary>${recBody(x)}</details>`).join("")}`).join("")||`<div class="card mute">${REC.some(x=>x.status==="ativa")?"Nenhuma receita encontrada.":"Ainda não há receitas na app."}</div>`}
   <div class="card mute" style="margin-top:14px">Cada cocktail leva <b>50 ml de Porto</b> (5 cl). Uma garrafa de 750 ml dá <b>15 cocktails</b>.<br><br>A tónica, a água com gás e o espumante entram sempre depois de agitar, nunca no shaker. Na lança de vapor só se aquece leite, nunca Porto nem sumos.</div>`;
 }
@@ -387,7 +387,7 @@ function aTeam(){
 
 async function loadML(){ML=null;render();const r=await api("month_lists",{month:(mlMonth||curMonth())+"-01"});if(r.error){flash={t:"err",m:r.error};ML={moves:[],goods:[],breakages:[]}}else ML=r;if(view==="admin"&&ML_TABS.includes(tab))render()}
 let xlsxP=null,REC=null,recQ="",LEAVE=null,INTRO="";
-const introHtml=t=>String(t||"").split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean).map(p=>{const m=p.match(/^([^:\n]{1,45}):\s*([\s\S]*)$/);return m?`<p style="margin:10px 0 0"><b>${e(m[1])}</b><br>${e(m[2])}</p>`:`<p style="margin:10px 0 0">${e(p)}</p>`}).join("");
+const introHtml=t=>String(t||"").split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean).map(p=>{const m=p.match(/^([^:\n]{1,45}):\s*([\s\S]*)$/);const br=x=>e(x).replace(/\n/g,"<br>");return m?`<p style="margin:12px 0 0"><b>${e(m[1])}</b><br>${br(m[2])}</p>`:`<p style="margin:12px 0 0">${br(p)}</p>`}).join("");
 const dm=d=>d.slice(8,10)+"/"+d.slice(5,7),rng=(a,b)=>!b||a===b?dm(a):dm(a)+" a "+dm(b);
 async function loadLeave(){const r=await api("leave");LEAVE=r.error?[]:r.leave;if(view==="request"){const f=document.querySelector("form[data-f=request]");if(!f)return render();const keep=new FormData(f);render();const g=document.querySelector("form[data-f=request]");for(const [k,v] of keep)if(g.elements[k]&&typeof v==="string"&&g.elements[k].type!=="radio")g.elements[k].value=v}}
 const SEASONS=["Primavera","Verão","Outono","Inverno","Todo o ano"];
