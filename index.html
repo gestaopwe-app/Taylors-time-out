@@ -139,7 +139,7 @@ async function boot(){
 
 function render(){
   hdr.innerHTML=view==="home"?`<button data-a="logout">Sair</button>`:`<button data-a="go" data-v="home">‹ Voltar</button>`;
-  ({home,open:vOpen,close:vClose,alert:vAlert,cash:vCash,goods:vGoods,brk:vBreak,request:vRequest,schedule:vSchedule,admin:vAdmin})[view]();
+  ({home,open:vOpen,close:vClose,alert:vAlert,cash:vCash,goods:vGoods,brk:vBreak,recipes:vRecipes,request:vRequest,schedule:vSchedule,admin:vAdmin})[view]();
   window.scrollTo(0,0);
 }
 function home(){
@@ -156,6 +156,7 @@ function home(){
   ${others.length?`<p class="mute">Em turno agora: ${others.map(x=>`${e(x.name)} (${e(x.shift)}, desde ${e(x.opened)})`).join(", ")}</p>`:""}
   <h3>Outros</h3>
   <div class="grid2"><button class="big" data-a="go" data-v="schedule">Escala</button><button class="big" data-a="go" data-v="request">Pedidos<small>Férias, folgas, trocas</small></button></div>
+  <button class="big" data-a="go" data-v="recipes">Receitas<small>Como fazer cada bebida</small></button>
   ${isAdmin()?`<button class="big adm" data-a="go" data-v="admin">Gestão<small>${pend?pend+" por tratar · ":""}Turnos, stock, caixa, mapas e configuração</small></button>`:""}`;
 }
 function vOpen(){
@@ -224,14 +225,21 @@ function vRequest(){
   <label>Observações <span class="opt">(opcional)</span><textarea name="note"></textarea></label>${extra("request")}<button class="btn">Enviar pedido</button></form>
   ${mine.length?`<h3>Os meus pedidos</h3><div class="card">${mine.map(r=>`<div class="row"><div class="n">${e(r.type)} · ${e(r.dates)}<small>${lis(r.created_at)}</small></div><span class="tag ${r.status==="aprovado"?"ok":r.status==="recusado"?"bad":"na"}">${e(r.status)}</span></div>`).join("")}</div>`:""}`;
 }
+function vRecipes(){
+  if(!REC){app.innerHTML=`<h2>Receitas</h2><p class="center">A carregar…</p>`;return}
+  const q=recQ.trim().toLowerCase(),L=REC.filter(x=>x.status==="ativa"&&(!q||[x.name,x.ingredients,x.porto].join(" ").toLowerCase().includes(q)));
+  app.innerHTML=`<h2>Receitas</h2>${fl()}<label>Procurar<input data-recq value="${e(recQ)}" placeholder="nome, ingrediente ou Porto"></label>
+  ${bySeason(L).map(([s,l])=>`<h3>${e(s)}</h3>${l.map(x=>`<details class="card"><summary><b>${e(x.name)}</b><div class="mute">${recSub(x)}</div></summary>${recBody(x)}</details>`).join("")}`).join("")||`<div class="card mute">${REC.some(x=>x.status==="ativa")?"Nenhuma receita encontrada.":"Ainda não há receitas na app."}</div>`}
+  <div class="card mute" style="margin-top:14px">A tónica, a água com gás e o espumante entram sempre depois de agitar, nunca no shaker. Na lança de vapor só se aquece leite, nunca Porto nem sumos.</div>`;
+}
 function vSchedule(){
   const s=D.schedule.filter(x=>x.day>=D.today);
   app.innerHTML=`<h2>Escala</h2>${groups(s,"day").map(([d,l])=>`<div class="card"><b>${e(dayL(d))}</b>${l.map(x=>`<div class="row"><div class="n">${e(x.shift)} <span class="mute">${HORAS[x.shift]}</span></div><b>${e(x.name)}</b></div>`).join("")}</div>`).join("")||'<div class="card mute">A escala ainda não está preenchida.</div>'}`;
 }
 
-const TABS=[["shifts","Turnos"],["stock","Stock"],["alerts","Avisos"],["requests","Pedidos"],["schedule","Escala"],["cash","Caixa"],["goods","Mercadoria"],["breaks","Quebras"],["maps","Mapas"],["items","Artigos"],["lists","Listas"],["questions","Perguntas"],["team","Equipa"]];
+const TABS=[["shifts","Turnos"],["stock","Stock"],["alerts","Avisos"],["requests","Pedidos"],["schedule","Escala"],["cash","Caixa"],["goods","Mercadoria"],["breaks","Quebras"],["maps","Mapas"],["items","Artigos"],["recipes","Receitas"],["lists","Listas"],["questions","Perguntas"],["team","Equipa"]];
 function vAdmin(){
-  app.innerHTML=`<h2>Gestão</h2><div class="tabs" role="tablist">${TABS.map(([k,l])=>`<button role="tab" aria-selected="${tab===k}" class="${tab===k?"on":""}" data-a="tab" data-t="${k}">${l}</button>`).join("")}</div>${fl()}<div id="tabc">${({shifts:aShifts,stock:aStock,alerts:aAlerts,requests:aRequests,schedule:aSchedule,cash:aCash,goods:aGoods,breaks:aBreaks,maps:aMaps,items:aItems,lists:aLists,questions:aQuestions,team:aTeam})[tab]()}</div>`;
+  app.innerHTML=`<h2>Gestão</h2><div class="tabs" role="tablist">${TABS.map(([k,l])=>`<button role="tab" aria-selected="${tab===k}" class="${tab===k?"on":""}" data-a="tab" data-t="${k}">${l}</button>`).join("")}</div>${fl()}<div id="tabc">${({shifts:aShifts,stock:aStock,alerts:aAlerts,requests:aRequests,schedule:aSchedule,cash:aCash,goods:aGoods,breaks:aBreaks,maps:aMaps,recipes:aRecipes,items:aItems,lists:aLists,questions:aQuestions,team:aTeam})[tab]()}</div>`;
 }
 function aShifts(){
   if(edit&&edit.k==="shift"){const s=edit.v;return `<form class="card" data-f="shiftedit"><b>Corrigir turno · ${e(s.name)} · ${e(dayL(s.day))}</b><input type="hidden" name="id" value="${s.id}">
@@ -297,6 +305,27 @@ function aItems(){
   <button class="btn">Guardar</button><button type="button" class="btn sec" data-a="cancel">Cancelar</button></form>`}
   return `<button class="btn" style="margin:0 0 14px" data-a="newitem">Novo artigo</button>${groups(D.items,"category").map(([g,it])=>`<div class="card"><b>${e(g)}</b>${it.map(i=>`<div class="row"><div class="n">${e(i.name)}${i.active?"":' <span class="tag na">desativado</span>'}<small>${e(i.supplier||"")} · ${i.mode==="number"?`mín. ${i.min_stock??"—"} ${e(i.unit)}`:"por nível"}</small></div><button class="sm" data-a="edititem" data-id="${i.id}">Editar</button></div>`).join("")}</div>`).join("")}`;
 }
+function aRecipes(){
+  if(edit&&edit.k==="rec"){const x=edit.v;return `<form class="card" data-f="recipe"><b>${x.id?"Editar receita":"Nova receita"}</b><input type="hidden" name="id" value="${x.id||""}">
+  <label>Nome<input name="name" value="${e(x.name||"")}" required></label>
+  <div class="three"><label>Estação<select name="season"><option value="">—</option>${SEASONS.map(s=>`<option ${x.season===s?"selected":""}>${s}</option>`).join("")}</select></label>
+  <label>Porto<select name="porto"><option value="">—</option>${["White","Ruby","Tawny","Outro"].map(s=>`<option ${x.porto===s?"selected":""}>${s}</option>`).join("")}</select></label>
+  <label>Preço (€)<input name="price" inputmode="decimal" value="${x.price??""}"></label></div>
+  <label>Ingredientes<textarea name="ingredients">${e(x.ingredients||"")}</textarea></label>
+  <label>Como fazer<textarea name="method">${e(x.method||"")}</textarea></label>
+  <label>Copo e decoração<input name="glass" value="${e(x.glass||"")}"></label>
+  <label>Notas <span class="opt">(opcional)</span><textarea name="notes">${e(x.notes||"")}</textarea></label>
+  ${x.id?"":`<label>Onde fica<select name="status"><option value="futura">Futuras (só a gestão vê)</option><option value="ativa">Receitas (a equipa vê)</option></select></label>`}
+  <button class="btn">Guardar</button><button type="button" class="btn sec" data-a="cancel">Cancelar</button></form>`}
+  if(!REC)return '<p class="center">A carregar…</p>';
+  const card=x=>`<details class="card"><summary><b>${e(x.name)}</b><div class="mute">${recSub(x)}</div></summary>${recBody(x)}
+    <p style="margin:12px 0 0;display:flex;gap:8px;flex-wrap:wrap">${x.status==="ativa"?`<button class="sm" data-a="recst" data-id="${x.id}" data-s="futura">Voltar às futuras</button>`:`<button class="sm go" data-a="recst" data-id="${x.id}" data-s="ativa">Passar para as receitas</button>`}
+    <button class="sm" data-a="editrec" data-id="${x.id}">Editar</button><button class="sm no" data-a="delrec" data-id="${x.id}">Apagar</button></p></details>`;
+  const A=REC.filter(x=>x.status==="ativa"),F=REC.filter(x=>x.status!=="ativa");
+  return `<button class="btn" style="margin:0 0 14px" data-a="newrec">Nova receita</button>
+  <h3>Receitas (a equipa vê) · ${A.length}</h3>${A.map(card).join("")||'<div class="card mute">Ainda nenhuma. Passa uma das futuras com o botão "Passar para as receitas".</div>'}
+  <h3>Futuras (só a gestão vê) · ${F.length}</h3>${bySeason(F).map(([s,l])=>`<p class="mute" style="margin:10px 0 6px"><b>${e(s)}</b></p>${l.map(card).join("")}`).join("")||'<div class="card mute">Sem receitas futuras.</div>'}`;
+}
 function aLists(){
   if(edit&&edit.k==="check"){const c=edit.v;return `<form class="card" data-f="check"><b>${c.id?"Editar passo":"Novo passo"}</b><input type="hidden" name="id" value="${c.id||""}">
   <label>Lista<select name="kind"><option value="abertura" ${c.kind==="abertura"?"selected":""}>Abertura</option><option value="fecho" ${c.kind==="fecho"?"selected":""}>Fecho</option></select></label>
@@ -327,7 +356,12 @@ function aTeam(){
 }
 
 async function loadML(){ML=null;render();const r=await api("month_lists",{month:(mlMonth||curMonth())+"-01"});if(r.error){flash={t:"err",m:r.error};ML={moves:[],goods:[],breakages:[]}}else ML=r;if(view==="admin"&&ML_TABS.includes(tab))render()}
-let xlsxP=null;
+let xlsxP=null,REC=null,recQ="";
+const SEASONS=["Primavera","Verão","Outono","Inverno","Todo o ano"];
+async function loadRec(){if(!REC)render();const r=await api("recipes");if(r.error){flash={t:"err",m:r.error};REC=[]}else REC=r.recipes;if(view==="recipes"||(view==="admin"&&tab==="recipes"))render()}
+const recBody=x=>`${x.ingredients?`<div style="margin-top:8px"><b>Ingredientes</b><div>${e(x.ingredients)}</div></div>`:""}${x.method?`<div style="margin-top:8px"><b>Como fazer</b><div>${e(x.method)}</div></div>`:""}${x.glass?`<div style="margin-top:8px"><b>Copo e decoração</b><div>${e(x.glass)}</div></div>`:""}${x.notes?`<div class="mute" style="margin-top:8px">${e(x.notes)}</div>`:""}`;
+const recSub=x=>[x.season,x.porto,x.price!=null?eur(x.price):""].filter(Boolean).map(e).join(" · ");
+const bySeason=L=>{const o=[...SEASONS,"Outras"].map(s=>[s,L.filter(x=>(SEASONS.includes(x.season)?x.season:"Outras")===s)]);return o.filter(([,l])=>l.length)};
 const ML_TABS=["cash","goods","breaks"],photos={};
 function loadXLSX(){return xlsxP||(xlsxP=new Promise((ok,no)=>{const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";s.onload=()=>ok(window.XLSX);s.onerror=()=>{xlsxP=null;no()};document.head.appendChild(s)}))}
 const hrs=(a,b)=>{if(!a||!b)return null;return r2((new Date(b)-new Date(a))/36e5)};
@@ -385,7 +419,9 @@ document.addEventListener("click",async ev=>{
   if(a==="pick"){pick={id,name:b.dataset.name};return boot()}
   if(a==="unpick"){pick=null;return boot()}
   if(a==="logout"){await api("logout");token=null;store.set("tto_token",null);D=null;pick=null;view="home";return boot()}
-  if(a==="go"){view=b.dataset.v;edit=null;if(view==="home"||view==="admin"){if(view==="admin"&&ML_TABS.includes(tab))loadML();return load()}return render()}
+  if(a==="go"&&b.dataset.v==="recipes"){view="recipes";edit=null;REC=null;return loadRec()}
+  if(a==="go"){view=b.dataset.v;edit=null;if(view==="admin"&&tab==="recipes"){REC=null;loadRec();return load()}if(view==="home"||view==="admin"){if(view==="admin"&&ML_TABS.includes(tab))loadML();return load()}return render()}
+  if(a==="tab"&&b.dataset.t==="recipes"){tab="recipes";edit=null;REC=null;return loadRec()}
   if(a==="tab"){tab=b.dataset.t;edit=null;if(ML_TABS.includes(tab))return loadML();return render()}
   if(a==="cancel"){edit=null;return render()}
   const find=(arr)=>arr.find(x=>x.id===id);
@@ -396,6 +432,10 @@ document.addEventListener("click",async ev=>{
   if(a==="editcheck"){edit={k:"check",v:find(D.checklist)};return render()}
   if(a==="newq"){edit={k:"q",v:{form:"closing",type:"text"}};return render()}
   if(a==="editq"){edit={k:"q",v:find(D.questions)};return render()}
+  if(a==="newrec"){edit={k:"rec",v:{}};return render()}
+  if(a==="editrec"){edit={k:"rec",v:REC.find(x=>x.id===id)};return render()}
+  if(a==="recst"){if(await act("recipe_status",{id,status:b.dataset.s},b.dataset.s==="ativa"?"Receita passada para as receitas. A equipa já a vê.":"Receita voltou às futuras."))loadRec();return}
+  if(a==="delrec"){if(confirm("Apagar esta receita de vez?")&&await act("recipe_delete",{id},"Receita apagada."))loadRec();return}
   if(a==="newuser"){edit={k:"user",v:{}};return render()}
   if(a==="edituser"){edit={k:"user",v:find(D.users)};return render()}
   const C=(msg,act2,p,ok)=>confirm(msg)&&act(act2,p,ok).then(x=>x&&(edit=null,after()));
@@ -411,7 +451,7 @@ document.addEventListener("click",async ev=>{
   if(a==="resolve"){if(await act("alert_resolve",{id,resolved:b.dataset.r==="1"}))load();return}
   if(a==="decide"){if(await act("request_decide",{id,status:b.dataset.s},"Pedido "+b.dataset.s+"."))load();return}
 });
-document.addEventListener("input",ev=>{const f=ev.target.form;if(f&&f.dataset.f==="close"&&["tpa","toc","sales_total"].includes(ev.target.name))updTips(f)});
+document.addEventListener("input",ev=>{if(ev.target.dataset.recq!==undefined){recQ=ev.target.value;const pos=ev.target.selectionStart;vRecipes();const i=$("[data-recq]");if(i){i.focus();i.setSelectionRange(pos,pos)}return}const f=ev.target.form;if(f&&f.dataset.f==="close"&&["tpa","toc","sales_total"].includes(ev.target.name))updTips(f)});
 document.addEventListener("change",async ev=>{
   const t=ev.target;
   if(t.dataset.ml!==undefined){mlMonth=t.value||null;return loadML()}
@@ -465,6 +505,9 @@ document.addEventListener("submit",async ev=>{
   if(k==="item"){const p={id:g("id"),name:g("name"),category:g("category"),supplier:g("supplier"),unit:g("unit"),mode:g("mode"),min_stock:num(g("min_stock"))==null?"":String(num(g("min_stock")))};
     if(g("id"))p.active=g("active")!=="false";if(await act("item_save",p,"Artigo guardado.")){edit=null;return load()}return done()}
   if(k==="check"){if(await act("check_save",{id:g("id"),kind:g("kind"),label:g("label")},"Passo guardado.")){edit=null;return load()}return done()}
+  if(k==="recipe"){const pr=g("price"),pv=num(pr);if(pr&&pv==null){inlineErr(f,"O preço tem de ser um número.");return done()}
+    const p={id:g("id"),name:g("name"),season:g("season"),porto:g("porto"),price:pv==null?"":String(pv),ingredients:g("ingredients"),method:g("method"),glass:g("glass"),notes:g("notes"),status:g("status")};
+    if(await act("recipe_save",p,"Receita guardada.")){edit=null;return loadRec()}return done()}
   if(k==="question"){const p={id:g("id"),form:g("form"),label:g("label"),type:g("type"),required:g("required")==="true",options:g("options").split(",").map(s=>s.trim()).filter(Boolean)};
     if(p.type==="choice"&&p.options.length<2){inlineErr(f,"Uma lista precisa de pelo menos duas opções.");return done()}
     if(await act("question_save",p,"Pergunta guardada.")){edit=null;return load()}return done()}
