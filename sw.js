@@ -1,5 +1,5 @@
 // Guarda só a "casca" da app, para abrir depressa. Os dados vêm sempre do servidor.
-const CACHE = "tto-v4";
+const CACHE = "tto-v5";
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => {

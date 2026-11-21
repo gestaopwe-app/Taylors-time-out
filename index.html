@@ -229,7 +229,7 @@ function vRecipes(){
   if(!REC){app.innerHTML=`<h2>Receitas</h2><p class="center">A carregar…</p>`;return}
   const q=recQ.trim().toLowerCase(),L=REC.filter(x=>x.status==="ativa"&&(!q||[x.name,x.ingredients,x.porto].join(" ").toLowerCase().includes(q)));
   app.innerHTML=`<h2>Receitas</h2>${fl()}<label>Procurar<input data-recq value="${e(recQ)}" placeholder="nome, ingrediente ou Porto"></label>
-  ${bySeason(L).map(([s,l])=>`<h3>${e(s)}</h3>${l.map(x=>`<details class="card"><summary><b>${e(x.name)}</b><div class="mute">${recSub(x)}</div></summary>${recBody(x)}</details>`).join("")}`).join("")||`<div class="card mute">${REC.some(x=>x.status==="ativa")?"Nenhuma receita encontrada.":"Ainda não há receitas na app."}</div>`}
+  ${bySeason(L).map(([s,l])=>`<h3>${e(s)}</h3>${l.map(x=>`<details class="card"><summary><div class="two" style="display:inline-flex;width:calc(100% - 20px)"><b>${e(x.name)}</b><b>${x.price!=null?eur(x.price):""}</b></div><div class="mute">${[x.season,x.porto].filter(Boolean).map(e).join(" · ")}</div></summary>${recBody(x)}</details>`).join("")}`).join("")||`<div class="card mute">${REC.some(x=>x.status==="ativa")?"Nenhuma receita encontrada.":"Ainda não há receitas na app."}</div>`}
   <div class="card mute" style="margin-top:14px">A tónica, a água com gás e o espumante entram sempre depois de agitar, nunca no shaker. Na lança de vapor só se aquece leite, nunca Porto nem sumos.</div>`;
 }
 function vSchedule(){
