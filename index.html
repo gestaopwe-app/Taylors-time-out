@@ -120,7 +120,7 @@ const groups=(arr,k)=>{const m=new Map();arr.forEach(x=>{const g=x[k]||"Outros";
 const fl=()=>{const f=flash;flash=null;return f?`<div class="msg ${f.t}" role="status">${e(f.m)}</div>`:""};
 const checks=k=>D.checklist.filter(c=>c.kind===k);
 const noiteAberta=()=>!!(D.open_shift&&D.open_shift.shift==="Noite");
-const LISTAS={abertura:"Abertura",fecho:"Fecho (todos os turnos)",fecho_noite:"Fecho da noite (só no turno da Noite)"};
+const LISTAS={abertura:"Abertura",fecho_noite:"Fecho da noite"};
 const checkHtml=k=>{const c=checks(k);return c.length?`<div class="card">${c.map(x=>`<label class="chk"><input type="checkbox" name="chk" value="${e(x.label)}">${e(x.label)}</label>`).join("")}</div>`:""};
 
 function extra(form){return D.questions.filter(q=>q.form===form&&q.active).map(q=>{
