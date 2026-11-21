@@ -139,7 +139,7 @@ async function boot(){
 
 function render(){
   hdr.innerHTML=view==="home"?`<button data-a="logout">Sair</button>`:`<button data-a="go" data-v="home">‹ Voltar</button>`;
-  ({home,open:vOpen,close:vClose,alert:vAlert,cash:vCash,goods:vGoods,request:vRequest,schedule:vSchedule,admin:vAdmin})[view]();
+  ({home,open:vOpen,close:vClose,alert:vAlert,cash:vCash,goods:vGoods,brk:vBreak,request:vRequest,schedule:vSchedule,admin:vAdmin})[view]();
   window.scrollTo(0,0);
 }
 function home(){
@@ -149,7 +149,7 @@ function home(){
   ${n?`<div class="card"><h3 style="margin-top:0">Recado do último turno</h3>${e(n.note)}<div class="mute">${e(n.name||"")} · ${lis(n.at)}</div></div>`:""}
   ${S?`<div class="status"><b>Turno da ${e(S.shift)} aberto</b> desde as ${e(S.opened)}</div>
     <div class="grid2"><button class="big" data-a="go" data-v="alert">Acabou um artigo</button><button class="big" data-a="go" data-v="cash">Movimento de caixa</button></div>
-    <button class="big" data-a="go" data-v="goods">Mercadoria recebida<small>Fatura ou guia de uma entrega</small></button>
+    <div class="grid2"><button class="big" data-a="go" data-v="brk">Partiu uma garrafa</button><button class="big" data-a="go" data-v="goods">Mercadoria recebida<small>Com foto da fatura</small></button></div>
     <button class="big main" data-a="go" data-v="close">Fechar turno<small>Lista, TPA, contagem e recado</small></button>`
   :`<button class="big main" data-a="go" data-v="open">Abrir turno<small>Regista a hora de entrada</small></button>
     <button class="big" data-a="go" data-v="alert">Acabou um artigo</button>`}
@@ -203,11 +203,18 @@ function vCash(){
 function vGoods(){
   const sup=[...new Set(D.items.map(i=>i.supplier).filter(Boolean))];
   app.innerHTML=`<h2>Mercadoria recebida</h2>${fl()}<form data-f="goods">
-  <label>O que chegou?<textarea name="description" required placeholder="ex.: lixívia, detergente da louça, água"></textarea></label>
+  <label>O que chegou e quantidade<textarea name="description" required placeholder="ex.: 6 lixívias, 2 detergentes da louça, 24 águas"></textarea></label>
   <div class="split"><label>Nº da fatura <span class="opt">(opcional)</span><input name="invoice_no"></label>
   <label>Fornecedor <span class="opt">(opcional)</span><input name="supplier" list="sup"></label></div>
   <datalist id="sup">${sup.map(s=>`<option>${e(s)}</option>`).join("")}</datalist>
-  <p class="mute">A data, a hora e quem recebeu ficam registadas sozinhas.</p><button class="btn">Registar</button></form>`;
+  <label>Foto da fatura<input type="file" name="photo" accept="image/*" capture="environment"></label>
+  <p class="mute">Tira a foto com a fatura bem esticada e com luz. A data, a hora e quem recebeu ficam registadas sozinhas.</p><button class="btn">Registar</button></form>`;
+}
+function vBreak(){
+  app.innerHTML=`<h2>Partiu uma garrafa</h2>${fl()}<form data-f="brk"><label>Que garrafa partiu?<select name="item_id" required><option value="">Escolhe…</option>
+  ${groups(D.items.filter(i=>i.active),"category").map(([g,it])=>`<optgroup label="${e(g)}">${it.map(i=>`<option value="${i.id}">${e(i.name)}</option>`).join("")}</optgroup>`).join("")}</select></label>
+  <label>Notas <span class="opt">(opcional)</span><textarea name="note"></textarea></label>
+  <p class="mute">O teu nome e a hora ficam registados sozinhos. A garrafa sai do stock.</p><button class="btn">Registar</button></form>`;
 }
 function vRequest(){
   const mine=isAdmin()?[]:D.requests.slice(0,6);
@@ -222,9 +229,9 @@ function vSchedule(){
   app.innerHTML=`<h2>Escala</h2>${groups(s,"day").map(([d,l])=>`<div class="card"><b>${e(dayL(d))}</b>${l.map(x=>`<div class="row"><div class="n">${e(x.shift)} <span class="mute">${HORAS[x.shift]}</span></div><b>${e(x.name)}</b></div>`).join("")}</div>`).join("")||'<div class="card mute">A escala ainda não está preenchida.</div>'}`;
 }
 
-const TABS=[["shifts","Turnos"],["stock","Stock"],["alerts","Avisos"],["requests","Pedidos"],["schedule","Escala"],["cash","Caixa"],["goods","Mercadoria"],["maps","Mapas"],["items","Artigos"],["lists","Listas"],["questions","Perguntas"],["team","Equipa"]];
+const TABS=[["shifts","Turnos"],["stock","Stock"],["alerts","Avisos"],["requests","Pedidos"],["schedule","Escala"],["cash","Caixa"],["goods","Mercadoria"],["breaks","Quebras"],["maps","Mapas"],["items","Artigos"],["lists","Listas"],["questions","Perguntas"],["team","Equipa"]];
 function vAdmin(){
-  app.innerHTML=`<h2>Gestão</h2><div class="tabs" role="tablist">${TABS.map(([k,l])=>`<button role="tab" aria-selected="${tab===k}" class="${tab===k?"on":""}" data-a="tab" data-t="${k}">${l}</button>`).join("")}</div>${fl()}<div id="tabc">${({shifts:aShifts,stock:aStock,alerts:aAlerts,requests:aRequests,schedule:aSchedule,cash:aCash,goods:aGoods,maps:aMaps,items:aItems,lists:aLists,questions:aQuestions,team:aTeam})[tab]()}</div>`;
+  app.innerHTML=`<h2>Gestão</h2><div class="tabs" role="tablist">${TABS.map(([k,l])=>`<button role="tab" aria-selected="${tab===k}" class="${tab===k?"on":""}" data-a="tab" data-t="${k}">${l}</button>`).join("")}</div>${fl()}<div id="tabc">${({shifts:aShifts,stock:aStock,alerts:aAlerts,requests:aRequests,schedule:aSchedule,cash:aCash,goods:aGoods,breaks:aBreaks,maps:aMaps,items:aItems,lists:aLists,questions:aQuestions,team:aTeam})[tab]()}</div>`;
 }
 function aShifts(){
   if(edit&&edit.k==="shift"){const s=edit.v;return `<form class="card" data-f="shiftedit"><b>Corrigir turno · ${e(s.name)} · ${e(dayL(s.day))}</b><input type="hidden" name="id" value="${s.id}">
@@ -269,7 +276,13 @@ function aCash(){
 }
 function aGoods(){
   if(!ML)return `${monthPick()}<p class="center">A carregar…</p>`;
-  return `${monthPick()}${ML.goods.map(g=>`<div class="card"><div class="two"><b>${e(g.description)}</b><button class="sm no" data-a="delgoods" data-id="${g.id}">Apagar</button></div><div class="mute">${e(dayL(g.day))} às ${e(g.at)} · ${e(g.name||"")}${g.invoice_no?` · fatura ${e(g.invoice_no)}`:""}${g.supplier?` · ${e(g.supplier)}`:""}</div></div>`).join("")||'<div class="card mute">Sem mercadoria registada neste mês.</div>'}`;
+  return `${monthPick()}${ML.goods.map(g=>`<div class="card"><div class="two"><b>${e(g.description)}</b><button class="sm no" data-a="delgoods" data-id="${g.id}">Apagar</button></div><div class="mute">${e(dayL(g.day))} às ${e(g.at)} · ${e(g.name||"")}${g.invoice_no?` · fatura ${e(g.invoice_no)}`:""}${g.supplier?` · ${e(g.supplier)}`:""}</div>
+  ${g.has_photo?(photos[g.id]?`<a href="${photos[g.id]}" target="_blank" rel="noopener"><img src="${photos[g.id]}" alt="Fatura" style="width:100%;margin-top:10px;border-radius:8px;border:1px solid var(--line)"></a>`:`<p style="margin:10px 0 0"><button class="sm" data-a="photo" data-id="${g.id}">Ver foto da fatura</button></p>`):""}</div>`).join("")||'<div class="card mute">Sem mercadoria registada neste mês.</div>'}`;
+}
+function aBreaks(){
+  if(!ML)return `${monthPick()}<p class="center">A carregar…</p>`;
+  const L=ML.breakages||[];
+  return `${monthPick()}<div class="card"><div class="two"><b>Garrafas partidas no mês</b><b>${L.length}</b></div></div>${L.map(k=>`<div class="card"><div class="two"><b>${e(k.item)}</b><button class="sm no" data-a="delbreak" data-id="${k.id}">Apagar</button></div><div class="mute">${e(dayL(k.day))} às ${e(k.at)} · ${e(k.name||"")}</div>${k.note?`<div>${e(k.note)}</div>`:""}</div>`).join("")||'<div class="card mute">Sem quebras neste mês.</div>'}`;
 }
 function aMaps(){
   return `<div class="card"><b>Mapas mensais para o Porto</b><p class="mute">Um ficheiro Excel com seis folhas: horas, fecho do dia, gratificação, movimentos de caixa, registo de mercadorias e horário. Sai tudo do que foi registado nos turnos.</p>
@@ -313,8 +326,9 @@ function aTeam(){
   return `<p class="mute">Cada pessoa entra com o seu código. Quem não tem código não aparece no ecrã de entrada.</p><div class="card">${D.users.map(u=>`<div class="row"><div class="n">${e(u.name)}<small>${u.role==="admin"?"Gestor":"Empregado"}${u.active?"":" · desativado"}</small></div><span class="tag ${u.has_pin?"ok":"bad"}">${u.has_pin?"Com código":"Sem código"}</span><button class="sm" data-a="edituser" data-id="${u.id}">Editar</button></div>`).join("")}</div><button class="btn" data-a="newuser">Nova pessoa</button>`;
 }
 
-async function loadML(){ML=null;render();const r=await api("month_lists",{month:(mlMonth||curMonth())+"-01"});if(r.error){flash={t:"err",m:r.error};ML={moves:[],goods:[]}}else ML=r;if(view==="admin"&&(tab==="cash"||tab==="goods"))render()}
+async function loadML(){ML=null;render();const r=await api("month_lists",{month:(mlMonth||curMonth())+"-01"});if(r.error){flash={t:"err",m:r.error};ML={moves:[],goods:[],breakages:[]}}else ML=r;if(view==="admin"&&ML_TABS.includes(tab))render()}
 let xlsxP=null;
+const ML_TABS=["cash","goods","breaks"],photos={};
 function loadXLSX(){return xlsxP||(xlsxP=new Promise((ok,no)=>{const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";s.onload=()=>ok(window.XLSX);s.onerror=()=>{xlsxP=null;no()};document.head.appendChild(s)}))}
 const hrs=(a,b)=>{if(!a||!b)return null;return r2((new Date(b)-new Date(a))/36e5)};
 function buildMaps(R){
@@ -364,15 +378,15 @@ async function act(action,payload,okMsg){
   if(r.error){flash={t:"err",m:r.error};if(!token){boot();return false}render();return false}
   if(okMsg)flash={t:"good",m:okMsg};return true;
 }
-const after=()=>(tab==="cash"||tab==="goods")&&view==="admin"?loadML():load();
+const after=()=>ML_TABS.includes(tab)&&view==="admin"?loadML():load();
 document.addEventListener("click",async ev=>{
   const b=ev.target.closest("[data-a]");if(!b||b.disabled)return;const a=b.dataset.a,id=b.dataset.id;
   if(a==="reload")return boot();
   if(a==="pick"){pick={id,name:b.dataset.name};return boot()}
   if(a==="unpick"){pick=null;return boot()}
   if(a==="logout"){await api("logout");token=null;store.set("tto_token",null);D=null;pick=null;view="home";return boot()}
-  if(a==="go"){view=b.dataset.v;edit=null;if(view==="home"||view==="admin"){if(view==="admin"&&(tab==="cash"||tab==="goods"))loadML();return load()}return render()}
-  if(a==="tab"){tab=b.dataset.t;edit=null;if(tab==="cash"||tab==="goods")return loadML();return render()}
+  if(a==="go"){view=b.dataset.v;edit=null;if(view==="home"||view==="admin"){if(view==="admin"&&ML_TABS.includes(tab))loadML();return load()}return render()}
+  if(a==="tab"){tab=b.dataset.t;edit=null;if(ML_TABS.includes(tab))return loadML();return render()}
   if(a==="cancel"){edit=null;return render()}
   const find=(arr)=>arr.find(x=>x.id===id);
   if(a==="editshift"){edit={k:"shift",v:find(D.shifts)};return render()}
@@ -391,6 +405,8 @@ document.addEventListener("click",async ev=>{
   if(a==="delsched")return C("Apagar este turno da escala?","schedule_delete",{id},"Turno apagado da escala.");
   if(a==="delcash")return C("Apagar este movimento de caixa?","cash_delete",{id},"Movimento apagado.");
   if(a==="delgoods")return C("Apagar este registo de mercadoria?","goods_delete",{id},"Registo apagado.");
+  if(a==="delbreak")return C("Apagar este registo de quebra? A garrafa não volta ao stock sozinha.","breakage_delete",{id},"Registo apagado.");
+  if(a==="photo"){b.disabled=true;b.textContent="A carregar…";const r=await api("goods_photo",{id});if(r.error||!r.photo){flash={t:"err",m:r.error||"Esta foto já não existe."};return render()}photos[id]=r.photo;return render()}
   if(a==="mvcheck"){if(await act("check_move",{id,dir:b.dataset.d}))load();return}
   if(a==="resolve"){if(await act("alert_resolve",{id,resolved:b.dataset.r==="1"}))load();return}
   if(a==="decide"){if(await act("request_decide",{id,status:b.dataset.s},"Pedido "+b.dataset.s+"."))load();return}
@@ -402,6 +418,14 @@ document.addEventListener("change",async ev=>{
   if(t.dataset.stock){const v=num(t.value);if(t.value.trim()!==""&&(v==null||v<0)){t.value="";return}if(await act("stock_set",{id:t.dataset.stock,current_stock:v==null?"":String(v)},"Stock atualizado."))load()}
   if(t.dataset.level){if(await act("stock_set",{id:t.dataset.level,level:t.value},"Stock atualizado."))load()}
 });
+async function shrink(file){
+  const url=URL.createObjectURL(file);
+  try{const img=new Image();await new Promise((ok,no)=>{img.onload=ok;img.onerror=no;img.src=url});
+    const k=Math.min(1,1600/Math.max(img.naturalWidth,img.naturalHeight)),c=document.createElement("canvas");
+    c.width=Math.round(img.naturalWidth*k);c.height=Math.round(img.naturalHeight*k);c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+    let q=.72,d=c.toDataURL("image/jpeg",q);while(d.length>1500000&&q>.3){q-=.12;d=c.toDataURL("image/jpeg",q)}return d}
+  finally{URL.revokeObjectURL(url)}
+}
 function inlineErr(f,m){flash={t:"err",m};const old=f.querySelector(".msg");const d=document.createElement("div");d.innerHTML=fl();old?old.replaceWith(d.firstChild):f.prepend(d.firstChild);window.scrollTo(0,0)}
 document.addEventListener("submit",async ev=>{
   ev.preventDefault();const f=ev.target,k=f.dataset.f,fd=new FormData(f),g=n=>(fd.get(n)||"").toString().trim(),btn=f.querySelector("button.btn:not([type=button])");
@@ -425,7 +449,11 @@ document.addEventListener("submit",async ev=>{
   if(k==="alert"){if(await act("alert",{item_id:g("item_id"),note:g("note"),answers:answers("alert",fd)},"Aviso enviado. Obrigado!")){view="home";return load()}return done()}
   if(k==="cash"){const v=num(g("amount"));if(v==null||v<=0){inlineErr(f,"O valor tem de ser um número maior que zero.");return done()}
     if(await act("cash_move",{kind:g("kind"),amount:String(v),description:g("description")},"Movimento registado.")){return load()}return done()}
-  if(k==="goods"){if(await act("goods",{description:g("description"),invoice_no:g("invoice_no"),supplier:g("supplier")},"Mercadoria registada.")){view="home";return load()}return done()}
+  if(k==="goods"){let photo="";const file=fd.get("photo");
+    if(file&&file.size){if(btn)btn.textContent="A preparar a foto…";try{photo=await shrink(file)}catch(_){if(btn)btn.textContent="Registar";inlineErr(f,"Não consegui ler a foto. Tira outra e tenta de novo.");return done()}}
+    if(!photo&&!confirm("Não tiraste foto da fatura. Registar mesmo assim?")){if(btn)btn.textContent="Registar";return done()}
+    if(await act("goods",{description:g("description"),invoice_no:g("invoice_no"),supplier:g("supplier"),photo},"Mercadoria registada.")){view="home";return load()}if(btn)btn.textContent="Registar";return done()}
+  if(k==="brk"){if(await act("breakage",{item_id:g("item_id"),note:g("note")},"Quebra registada.")){view="home";return load()}return done()}
   if(k==="request"){if(await act("request",{type:g("type"),dates:g("dates"),swap_with:g("swap_with"),note:g("note"),answers:answers("request",fd)},"Pedido enviado.")){view="home";return load()}return done()}
   if(k==="schedule"){if(await act("schedule_save",{day:g("day"),shift:g("shift"),user_id:g("user_id")},"Turno marcado."))return load();return done()}
   if(k==="shiftedit"){const p={id:g("id"),shift:g("shift"),opened:g("opened"),closed:g("closed"),note:g("note")};
