@@ -220,9 +220,10 @@ function vBreak(){
 function vRequest(){
   const mine=isAdmin()?[]:D.requests.slice(0,6);
   app.innerHTML=`<h2>Pedidos</h2>${fl()}<form data-f="request"><label>Tipo de pedido<select name="type" required><option value="">Escolhe…</option><option>Férias</option><option>Folga</option><option>Troca de turno</option></select></label>
-  <label>Datas<input name="dates" required placeholder="ex.: 12 a 15 de dezembro"></label>
+  <div class="split"><label>De<input type="date" name="date_from" required min="${D.today}"></label><label>Até <span class="opt">(se for mais de um dia)</span><input type="date" name="date_to" min="${D.today}"></label></div>
   <label>Troca com quem? <span class="opt">(só para trocas)</span><select name="swap_with"><option value="">—</option>${D.staff.filter(s=>s.name!==D.user.name).map(s=>`<option>${e(s.name)}</option>`).join("")}</select></label>
   <label>Observações <span class="opt">(opcional)</span><textarea name="note"></textarea></label>${extra("request")}<button class="btn">Enviar pedido</button></form>
+  <h3>Férias e folgas marcadas</h3>${LEAVE?(LEAVE.length?`<div class="card">${LEAVE.map(x=>`<div class="row"><div class="n">${e(x.name)}${x.mine?" (eu)":""}<small>${e(x.type)}</small></div><span>${e(rng(x.from,x.to))}</span><span class="tag ${x.status==="aprovado"?"ok":"na"}">${x.status==="aprovado"?"aprovado":"por aprovar"}</span></div>`).join("")}</div>`:'<div class="card mute">Ninguém tem férias ou folgas marcadas daqui para a frente.</div>'):'<p class="mute">A carregar…</p>'}
   ${mine.length?`<h3>Os meus pedidos</h3><div class="card">${mine.map(r=>`<div class="row"><div class="n">${e(r.type)} · ${e(r.dates)}<small>${lis(r.created_at)}</small></div><span class="tag ${r.status==="aprovado"?"ok":r.status==="recusado"?"bad":"na"}">${e(r.status)}</span></div>`).join("")}</div>`:""}`;
 }
 function vRecipes(){
@@ -356,7 +357,9 @@ function aTeam(){
 }
 
 async function loadML(){ML=null;render();const r=await api("month_lists",{month:(mlMonth||curMonth())+"-01"});if(r.error){flash={t:"err",m:r.error};ML={moves:[],goods:[],breakages:[]}}else ML=r;if(view==="admin"&&ML_TABS.includes(tab))render()}
-let xlsxP=null,REC=null,recQ="";
+let xlsxP=null,REC=null,recQ="",LEAVE=null;
+const dm=d=>d.slice(8,10)+"/"+d.slice(5,7),rng=(a,b)=>!b||a===b?dm(a):dm(a)+" a "+dm(b);
+async function loadLeave(){const r=await api("leave");LEAVE=r.error?[]:r.leave;if(view==="request"){const f=document.querySelector("form[data-f=request]");if(!f)return render();const keep=new FormData(f);render();const g=document.querySelector("form[data-f=request]");for(const [k,v] of keep)if(g.elements[k]&&typeof v==="string"&&g.elements[k].type!=="radio")g.elements[k].value=v}}
 const SEASONS=["Primavera","Verão","Outono","Inverno","Todo o ano"];
 async function loadRec(){if(!REC)render();const r=await api("recipes");if(r.error){flash={t:"err",m:r.error};REC=[]}else REC=r.recipes;if(view==="recipes"||(view==="admin"&&tab==="recipes"))render()}
 const recBody=x=>`${x.ingredients?`<div style="margin-top:8px"><b>Ingredientes</b><div>${e(x.ingredients)}</div></div>`:""}${x.method?`<div style="margin-top:8px"><b>Como fazer</b><div>${e(x.method)}</div></div>`:""}${x.glass?`<div style="margin-top:8px"><b>Copo e decoração</b><div>${e(x.glass)}</div></div>`:""}${x.notes?`<div class="mute" style="margin-top:8px">${e(x.notes)}</div>`:""}`;
@@ -419,6 +422,7 @@ document.addEventListener("click",async ev=>{
   if(a==="pick"){pick={id,name:b.dataset.name};return boot()}
   if(a==="unpick"){pick=null;return boot()}
   if(a==="logout"){await api("logout");token=null;store.set("tto_token",null);D=null;pick=null;view="home";return boot()}
+  if(a==="go"&&b.dataset.v==="request"){view="request";edit=null;LEAVE=null;render();return loadLeave()}
   if(a==="go"&&b.dataset.v==="recipes"){view="recipes";edit=null;REC=null;return loadRec()}
   if(a==="go"){view=b.dataset.v;edit=null;if(view==="admin"&&tab==="recipes"){REC=null;loadRec();return load()}if(view==="home"||view==="admin"){if(view==="admin"&&ML_TABS.includes(tab))loadML();return load()}return render()}
   if(a==="tab"&&b.dataset.t==="recipes"){tab="recipes";edit=null;REC=null;return loadRec()}
@@ -494,7 +498,11 @@ document.addEventListener("submit",async ev=>{
     if(!photo&&!confirm("Não tiraste foto da fatura. Registar mesmo assim?")){if(btn)btn.textContent="Registar";return done()}
     if(await act("goods",{description:g("description"),invoice_no:g("invoice_no"),supplier:g("supplier"),photo},"Mercadoria registada.")){view="home";return load()}if(btn)btn.textContent="Registar";return done()}
   if(k==="brk"){if(await act("breakage",{item_id:g("item_id"),note:g("note")},"Quebra registada.")){view="home";return load()}return done()}
-  if(k==="request"){if(await act("request",{type:g("type"),dates:g("dates"),swap_with:g("swap_with"),note:g("note"),answers:answers("request",fd)},"Pedido enviado.")){view="home";return load()}return done()}
+  if(k==="request"){const df=g("date_from"),dt=g("date_to")||df;
+    if(dt<df){inlineErr(f,'A data "Até" não pode ser antes da data "De".');return done()}
+    const clash=(LEAVE||[]).filter(x=>!x.mine&&x.from<=dt&&x.to>=df);
+    if(["Férias","Folga"].includes(g("type"))&&clash.length&&!confirm(`Nesses dias já ${clash.length>1?"estão":"está"} de férias ou folga: ${clash.map(x=>x.name+" ("+rng(x.from,x.to)+")").join(", ")}. Enviar o pedido mesmo assim?`))return done();
+    if(await act("request",{type:g("type"),date_from:df,date_to:g("date_to"),swap_with:g("swap_with"),note:g("note"),answers:answers("request",fd)},"Pedido enviado.")){view="home";return load()}return done()}
   if(k==="schedule"){if(await act("schedule_save",{day:g("day"),shift:g("shift"),user_id:g("user_id")},"Turno marcado."))return load();return done()}
   if(k==="shiftedit"){const p={id:g("id"),shift:g("shift"),opened:g("opened"),closed:g("closed"),note:g("note")};
     for(const n of ["tpa","toc","sales_total"]){const raw=g(n),v=num(raw);if(raw&&v==null){inlineErr(f,"Os valores têm de ser números.");return done()}p[n]=v==null?"":String(v)}
