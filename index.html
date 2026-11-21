@@ -141,7 +141,7 @@ async function boot(){
     <form data-f="setup">${fl()}<label>Código do gestor (4 a 8 algarismos)<input class="pin" name="pin" type="password" inputmode="numeric" pattern="[0-9]{4,8}" autocomplete="new-password" required></label>
     <label>Repete o código<input class="pin" name="pin2" type="password" inputmode="numeric" pattern="[0-9]{4,8}" autocomplete="new-password" required></label><button class="btn">Guardar e entrar</button></form>`;return}
   if(pick){app.innerHTML=`<h2>Olá, ${e(pick.name)}</h2><form data-f="login">${fl()}<label>O teu código<input class="pin" name="pin" type="password" inputmode="numeric" autocomplete="current-password" required autofocus></label>
-    <button class="btn">Entrar</button><button type="button" class="btn sec" data-a="unpick">Não sou eu</button></form>`;return}
+    <button class="btn">Entrar</button><button type="button" class="btn sec" data-a="unpick">Não sou eu</button></form>`;syncHistory();return}
   app.innerHTML=`<h2>Quem és tu?</h2>${fl()}<div class="names">${s.users.map(u=>`<button data-a="pick" data-id="${u.id}" data-name="${e(u.name)}">${e(u.name)}</button>`).join("")||'<p class="mute">Ainda ninguém tem código.</p>'}</div>`;
 }
 
@@ -149,7 +149,23 @@ function render(){
   hdr.innerHTML=view==="home"?`<button data-a="logout">Sair</button>`:view==="admin"&&tab?`<button data-a="tab" data-t="">‹ Gestão</button>`:`<button data-a="go" data-v="home">‹ Voltar</button>`;
   ({home,open:vOpen,close:vClose,alert:vAlert,cash:vCash,goods:vGoods,brk:vBreak,recipes:vRecipes,request:vRequest,schedule:vSchedule,admin:vAdmin})[view]();
   window.scrollTo(0,0);
+  syncHistory();
 }
+// Seta "voltar" do Android/navegador: volta ao ecrã anterior em vez de fechar a app
+let skipPop=false;
+const deep=()=>!!(D?(view!=="home"||edit):pick);
+function syncHistory(){
+  try{const inApp=history.state&&history.state.tto;
+    if(deep()&&!inApp)history.pushState({tto:1},"");
+    else if(!deep()&&inApp){skipPop=true;history.back()}}catch(_){}
+}
+window.addEventListener("popstate",()=>{
+  if(skipPop){skipPop=false;return}
+  if(!D){if(pick){pick=null;boot()}return}
+  if(edit){edit=null;return render()}
+  if(view==="admin"&&tab){tab=null;return load()}
+  if(view!=="home"){view="home";return load()}
+});
 function home(){
   const S=D.open_shift,n=D.last_note,others=D.on_duty.filter(x=>!S||x.name!==D.user.name);
   const pend=isAdmin()?D.requests.filter(r=>r.status==="pendente").length+D.alerts.filter(a=>!a.resolved).length:0;
