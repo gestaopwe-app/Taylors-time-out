@@ -119,6 +119,8 @@ const tagOf=i=>{const s=need(i);return `<span class="tag ${s}">${s==="bad"?"Enco
 const groups=(arr,k)=>{const m=new Map();arr.forEach(x=>{const g=x[k]||"Outros";m.has(g)||m.set(g,[]);m.get(g).push(x)});return [...m]};
 const fl=()=>{const f=flash;flash=null;return f?`<div class="msg ${f.t}" role="status">${e(f.m)}</div>`:""};
 const checks=k=>D.checklist.filter(c=>c.kind===k);
+const noiteAberta=()=>!!(D.open_shift&&D.open_shift.shift==="Noite");
+const LISTAS={abertura:"Abertura",fecho:"Fecho (todos os turnos)",fecho_noite:"Fecho da noite (só no turno da Noite)"};
 const checkHtml=k=>{const c=checks(k);return c.length?`<div class="card">${c.map(x=>`<label class="chk"><input type="checkbox" name="chk" value="${e(x.label)}">${e(x.label)}</label>`).join("")}</div>`:""};
 
 function extra(form){return D.questions.filter(q=>q.form===form&&q.active).map(q=>{
@@ -176,6 +178,7 @@ function vClose(){
   const items=D.items.filter(i=>i.active);
   app.innerHTML=`<h2>Fechar turno</h2>${fl()}<form data-f="close">
   ${checks("fecho").length?`<h3>Lista de fecho</h3>${checkHtml("fecho")}`:""}
+  ${noiteAberta()&&checks("fecho_noite").length?`<h3>Fecho da noite</h3>${checkHtml("fecho_noite")}`:""}
   <h3>Caixa</h3><div class="card"><div class="three">
   <label>TPA (€)<input name="tpa" inputmode="decimal" required></label><label>TOC (€)<input name="toc" inputmode="decimal" placeholder="0"></label><label>Total vendas (€)<input name="sales_total" inputmode="decimal" required></label></div>
   <div class="tips" id="tips" aria-live="polite"><span>Gratificação</span><span>—</span></div>
@@ -264,7 +267,7 @@ function aShifts(){
   <div class="row"><div class="n">${t<0?"Diferença de caixa":"Gratificação"}</div><span class="tag ${t<0?"bad":"ok"}">${eur(t)}</span></div>`:""}
   ${s.note?`<div><b>Recado:</b> ${e(s.note)}</div>`:""}${ansHtml(s.answers)}
   ${s.counts.length?`<details><summary>Contagem (${s.counts.length})</summary>${s.counts.map(x=>`<div class="row"><div class="n">${e(x.item)}</div><span>${x.level?LV[x.level]:`${x.qty} ${e(x.unit||"")}`}</span></div>`).join("")}</details>`:""}
-  ${(s.open_checks.length||s.close_checks.length)?`<details><summary>Listas</summary><div class="mute">Abertura: ${s.open_checks.length}/${checks("abertura").length} · Fecho: ${s.close_checks.length}/${checks("fecho").length}</div></details>`:""}
+  ${(s.open_checks.length||s.close_checks.length)?`<details><summary>Listas</summary><div class="mute">Abertura: ${s.open_checks.length}/${checks("abertura").length} · Fecho: ${s.close_checks.length}/${checks("fecho").length+(s.shift==="Noite"?checks("fecho_noite").length:0)}</div></details>`:""}
   <p style="margin:10px 0 0"><button class="sm" data-a="editshift" data-id="${s.id}">Corrigir</button></p></div>`}).join("")||'<div class="card mute">Ainda não há turnos.</div>';
 }
 function aStock(){
@@ -353,9 +356,9 @@ function aRecipes(){
 }
 function aLists(){
   if(edit&&edit.k==="check"){const c=edit.v;return `<form class="card" data-f="check"><b>${c.id?"Editar passo":"Novo passo"}</b><input type="hidden" name="id" value="${c.id||""}">
-  <label>Lista<select name="kind"><option value="abertura" ${c.kind==="abertura"?"selected":""}>Abertura</option><option value="fecho" ${c.kind==="fecho"?"selected":""}>Fecho</option></select></label>
+  <label>Lista<select name="kind">${Object.entries(LISTAS).map(([k,l])=>`<option value="${k}" ${c.kind===k?"selected":""}>${l}</option>`).join("")}</select></label>
   <label>O que fazer<input name="label" value="${e(c.label||"")}" required></label><button class="btn">Guardar</button><button type="button" class="btn sec" data-a="cancel">Cancelar</button></form>`}
-  return `<p class="mute">Os passos que cada empregado pica ao abrir e ao fechar o turno.</p>${["abertura","fecho"].map(k=>`<div class="card"><b>${k==="abertura"?"Abertura":"Fecho"}</b>${checks(k).map((c,i,a)=>`<div class="lrow"><div>${i+1}. ${e(c.label)}</div><div class="acts">
+  return `<p class="mute">Os passos que cada empregado pica ao abrir e ao fechar o turno.</p>${Object.keys(LISTAS).map(k=>`<div class="card"><b>${LISTAS[k]}</b>${checks(k).map((c,i,a)=>`<div class="lrow"><div>${i+1}. ${e(c.label)}</div><div class="acts">
   <button class="sm" data-a="mvcheck" data-id="${c.id}" data-d="up" ${i?"":"disabled"} aria-label="Subir">↑</button><button class="sm" data-a="mvcheck" data-id="${c.id}" data-d="down" ${i<a.length-1?"":"disabled"} aria-label="Descer">↓</button>
   <button class="sm" data-a="editcheck" data-id="${c.id}">Editar</button><button class="sm no" data-a="delcheck" data-id="${c.id}">Apagar</button></div></div>`).join("")||'<div class="mute">Sem passos.</div>'}
   <p style="margin:10px 0 0"><button class="sm" data-a="newcheck" data-k="${k}">+ Novo passo</button></p></div>`).join("")}`;
@@ -515,7 +518,8 @@ document.addEventListener("submit",async ev=>{
   if(k==="close"){
     const tpa=num(g("tpa")),toc=num(g("toc"))||0,sal=num(g("sales_total"));
     if(tpa==null||sal==null){inlineErr(f,"O TPA e o total de vendas têm de ser números, por exemplo 245,50.");return done()}
-    if(!allTicked("fecho"))return done();
+    {const need=checks("fecho").length+(noiteAberta()?checks("fecho_noite").length:0);
+     if(ticked.length<need&&!confirm(`Faltam ${need-ticked.length} passos da lista. Continuar mesmo assim?`))return done()}
     const counts=[],missing=[];
     D.items.filter(i=>i.active).forEach(i=>{const v=g("c_"+i.id);if(i.mode==="number"){const q=num(v);if(q==null||q<0)missing.push(i.name);else counts.push({item_id:i.id,qty:q})}else{if(!v)missing.push(i.name);else counts.push({item_id:i.id,level:v})}});
     if(missing.length&&!confirm(`Faltam ${missing.length} artigos por contar (${missing.slice(0,4).join(", ")}${missing.length>4?"…":""}). Fechar mesmo assim?`))return done();
