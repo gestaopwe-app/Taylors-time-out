@@ -84,7 +84,7 @@ const KEY="sb_publishable_EbHFRtkND-jenA-Ld1olow_RgUXk0rX";
 const $=s=>document.querySelector(s), app=$("#app"), hdr=$("#hdr");
 const e=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const store={get(k){try{return localStorage.getItem(k)}catch(_){return null}},set(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(_){}}};
-let token=store.get("tto_token"),D=null,view="home",tab="shifts",flash=null,pick=null,edit=null,busy=false,ML=null,mlMonth=null;
+let token=store.get("tto_token"),D=null,view="home",tab=null,flash=null,pick=null,edit=null,busy=false,ML=null,mlMonth=null;
 const LV={bastante:"Há bastante",pouco:"Há pouco",acabou:"Acabou"};
 const FORMS={closing:"Fecho de turno",alert:"Aviso de falta",request:"Pedidos"};
 const MESES=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
@@ -138,7 +138,7 @@ async function boot(){
 }
 
 function render(){
-  hdr.innerHTML=view==="home"?`<button data-a="logout">Sair</button>`:`<button data-a="go" data-v="home">‹ Voltar</button>`;
+  hdr.innerHTML=view==="home"?`<button data-a="logout">Sair</button>`:view==="admin"&&tab?`<button data-a="tab" data-t="">‹ Gestão</button>`:`<button data-a="go" data-v="home">‹ Voltar</button>`;
   ({home,open:vOpen,close:vClose,alert:vAlert,cash:vCash,goods:vGoods,brk:vBreak,recipes:vRecipes,request:vRequest,schedule:vSchedule,admin:vAdmin})[view]();
   window.scrollTo(0,0);
 }
@@ -238,9 +238,12 @@ function vSchedule(){
   app.innerHTML=`<h2>Escala</h2>${groups(s,"day").map(([d,l])=>`<div class="card"><b>${e(dayL(d))}</b>${l.map(x=>`<div class="row"><div class="n">${e(x.shift)} <span class="mute">${HORAS[x.shift]}</span></div><b>${e(x.name)}</b></div>`).join("")}</div>`).join("")||'<div class="card mute">A escala ainda não está preenchida.</div>'}`;
 }
 
-const TABS=[["shifts","Turnos"],["stock","Stock"],["alerts","Avisos"],["requests","Pedidos"],["schedule","Escala"],["cash","Caixa"],["goods","Mercadoria"],["breaks","Quebras"],["maps","Mapas"],["items","Artigos"],["recipes","Receitas"],["lists","Listas"],["questions","Perguntas"],["team","Equipa"]];
+const TABS=[["shifts","Turnos","Horas, caixa e correções"],["stock","Stock","A encomendar e contagens"],["alerts","Avisos","Artigos que acabaram"],["requests","Pedidos","Férias, folgas e trocas"],["schedule","Escala","Marcar turnos"],["cash","Caixa","Fundo de maneio"],["goods","Mercadoria","Entregas e faturas"],["breaks","Quebras","Garrafas partidas"],["maps","Mapas","Excel do mês"],["recipes","Receitas","Receitas e futuras"],["items","Artigos","Lista e mínimos"],["lists","Listas","Abertura e fecho"],["questions","Perguntas","Perguntas extra"],["team","Equipa","Pessoas e códigos"]];
 function vAdmin(){
-  app.innerHTML=`<h2>Gestão</h2><div class="tabs" role="tablist">${TABS.map(([k,l])=>`<button role="tab" aria-selected="${tab===k}" class="${tab===k?"on":""}" data-a="tab" data-t="${k}">${l}</button>`).join("")}</div>${fl()}<div id="tabc">${({shifts:aShifts,stock:aStock,alerts:aAlerts,requests:aRequests,schedule:aSchedule,cash:aCash,goods:aGoods,breaks:aBreaks,maps:aMaps,recipes:aRecipes,items:aItems,lists:aLists,questions:aQuestions,team:aTeam})[tab]()}</div>`;
+  if(!tab){const n={alerts:D.alerts.filter(a=>!a.resolved).length,requests:D.requests.filter(r=>r.status==="pendente").length,stock:D.items.filter(i=>i.active&&need(i)==="bad").length};
+    app.innerHTML=`<h2>Gestão</h2>${fl()}<div class="grid2">${TABS.map(([k,l,sub])=>`<button class="big" data-a="tab" data-t="${k}">${l}${n[k]?` <span class="tag bad">${n[k]}</span>`:""}<small>${sub}</small></button>`).join("")}</div>`;return}
+  const T=TABS.find(x=>x[0]===tab);
+  app.innerHTML=`<h2>${T[1]}</h2>${fl()}<div id="tabc">${({shifts:aShifts,stock:aStock,alerts:aAlerts,requests:aRequests,schedule:aSchedule,cash:aCash,goods:aGoods,breaks:aBreaks,maps:aMaps,recipes:aRecipes,items:aItems,lists:aLists,questions:aQuestions,team:aTeam})[tab]()}</div>`;
 }
 function aShifts(){
   if(edit&&edit.k==="shift"){const s=edit.v;return `<form class="card" data-f="shiftedit"><b>Corrigir turno · ${e(s.name)} · ${e(dayL(s.day))}</b><input type="hidden" name="id" value="${s.id}">
@@ -424,7 +427,8 @@ document.addEventListener("click",async ev=>{
   if(a==="logout"){await api("logout");token=null;store.set("tto_token",null);D=null;pick=null;view="home";return boot()}
   if(a==="go"&&b.dataset.v==="request"){view="request";edit=null;LEAVE=null;render();return loadLeave()}
   if(a==="go"&&b.dataset.v==="recipes"){view="recipes";edit=null;REC=null;return loadRec()}
-  if(a==="go"){view=b.dataset.v;edit=null;if(view==="admin"&&tab==="recipes"){REC=null;loadRec();return load()}if(view==="home"||view==="admin"){if(view==="admin"&&ML_TABS.includes(tab))loadML();return load()}return render()}
+  if(a==="go"){view=b.dataset.v;edit=null;if(view==="admin")tab=null;if(view==="admin"&&tab==="recipes"){REC=null;loadRec();return load()}if(view==="home"||view==="admin"){if(view==="admin"&&ML_TABS.includes(tab))loadML();return load()}return render()}
+  if(a==="tab"&&!b.dataset.t){tab=null;edit=null;return load()}
   if(a==="tab"&&b.dataset.t==="recipes"){tab="recipes";edit=null;REC=null;return loadRec()}
   if(a==="tab"){tab=b.dataset.t;edit=null;if(ML_TABS.includes(tab))return loadML();return render()}
   if(a==="cancel"){edit=null;return render()}
