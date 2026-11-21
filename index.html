@@ -41,6 +41,12 @@ textarea{min-height:84px;resize:vertical}
 input:focus,select:focus,textarea:focus,button:focus-visible{outline:3px solid rgba(184,138,62,.5);outline-offset:1px}
 .row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
 .row:last-child{border-bottom:0}
+.lrow{padding:10px 0;border-bottom:1px solid var(--line)}.lrow:last-child{border-bottom:0}.lrow small{display:block;color:var(--mute);font-size:13px}
+.lrow .acts{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.cal{width:100%;border-collapse:collapse;font-size:14px}.cal th,.cal td{padding:9px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.cal thead th{font-size:13px;color:var(--mute);font-weight:600}.cal thead small{display:block;font-weight:400}
+.cal tbody th{white-space:nowrap;width:62px;font-weight:600}.cal td.sc{cursor:pointer;font-weight:600}.cal td.vz{color:var(--mute);font-weight:400}
+.cal tr.fds th{color:var(--wine)}.cal tr.hoje{background:#f6efe0}.cal td.fer{font-size:12.5px;color:var(--warn)}
 .row .n{flex:1;min-width:0}.row .n small{display:block;color:var(--mute);font-size:13px}
 .row input.q{width:92px;text-align:center;padding:10px 6px}
 .chk{display:flex;gap:12px;align-items:flex-start;font-weight:500;margin:0;padding:12px 0;border-bottom:1px solid var(--line)}
@@ -272,10 +278,24 @@ function aAlerts(){return D.alerts.map(a=>`<div class="card"><div class="two"><b
 function aRequests(){return D.requests.map(r=>`<div class="card"><div class="two"><b>${e(r.type)} · ${e(r.name||"")}</b><span class="tag ${r.status==="aprovado"?"ok":r.status==="recusado"?"bad":"na"}">${e(r.status)}</span></div>
   <div>${e(r.dates)}${r.swap_with?` · troca com ${e(r.swap_with)}`:""}</div>${r.note?`<div>${e(r.note)}</div>`:""}${ansHtml(r.answers)}<div class="mute">${lis(r.created_at)}</div>
   <p style="margin:10px 0 0;display:flex;gap:8px"><button class="sm go" data-a="decide" data-id="${r.id}" data-s="aprovado">Aprovar</button><button class="sm no" data-a="decide" data-id="${r.id}" data-s="recusado">Recusar</button></p></div>`).join("")||'<div class="card mute">Sem pedidos.</div>'}
-function aSchedule(){const st=D.users.filter(u=>u.active&&(u.works??u.role==="staff"));
-  return `<form class="card" data-f="schedule"><b>Marcar turno</b><div class="split"><label>Dia<input type="date" name="day" required></label><label>Turno<select name="shift"><option>Manhã</option><option>Noite</option></select></label></div>
-  <label>Quem<select name="user_id" required>${st.map(u=>`<option value="${u.id}">${e(u.name)}</option>`).join("")}</select></label><button class="btn">Guardar</button><p class="mute">Se o turno já tiver alguém, troca a pessoa.</p></form>
-  ${groups(D.schedule,"day").map(([d,l])=>`<div class="card"><b>${e(dayL(d))}</b>${l.map(x=>`<div class="row"><div class="n">${e(x.shift)}</div><b>${e(x.name)}</b><button class="sm no" data-a="delsched" data-id="${x.id}" aria-label="Apagar">Apagar</button></div>`).join("")}</div>`).join("")||'<div class="card mute">Escala vazia.</div>'}`}
+let SCH=null,schMonth=null,schSel=null;
+async function loadSch(){const m=(schMonth||curMonth())+"-01";const r=await api("report",{month:m});SCH=r.error?{schedule:[],leave:[],month:m}:r;if(view==="admin"&&tab==="schedule")render()}
+function aSchedule(){
+  const st=D.users.filter(u=>u.active&&(u.works??u.role==="staff")),sel=schSel||{};
+  const form=`<form class="card" data-f="schedule"><b>${sel.id?"Mudar turno":"Marcar turno"}</b><div class="split"><label>Dia<input type="date" name="day" value="${e(sel.day||"")}" required></label><label>Turno<select name="shift">${["Manhã","Noite"].map(t=>`<option ${sel.shift===t?"selected":""}>${t}</option>`).join("")}</select></label></div>
+  <label>Quem<select name="user_id" required>${st.map(u=>`<option value="${u.id}" ${sel.user_id===u.id?"selected":""}>${e(u.name)}</option>`).join("")}</select></label><button class="btn">Guardar</button>
+  ${sel.id?`<button type="button" class="btn sec" style="color:var(--warn);border-color:var(--warn)" data-a="delsched" data-id="${sel.id}">Tirar ${e(sel.name)} deste turno</button>`:""}
+  <p class="mute">Toca num turno do mapa para o escolher. Se o turno já tiver alguém, troca a pessoa.</p></form>`;
+  const mp=`<label>Mês<input type="month" data-schm value="${schMonth||curMonth()}"></label>`;
+  if(!SCH)return form+mp+'<p class="center">A carregar…</p>';
+  const [y,m]=SCH.month.split("-").map(Number),nd=new Date(y,m,0).getDate(),by={};
+  SCH.schedule.forEach(x=>by[x.day+x.shift]=x);
+  const rows=[...Array(nd)].map((_,i)=>{const d=i+1,iso=`${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`,wd=new Date(y,m-1,d).getDay();
+    const fer=(SCH.leave||[]).filter(f=>f.from<=iso&&f.to>=iso).map(f=>f.name);
+    const cell=sh=>{const x=by[iso+sh];return `<td class="sc${x?"":" vz"}" data-a="schcell" data-d="${iso}" data-s="${sh}">${x?e(x.name):"—"}</td>`};
+    return `<tr class="${wd===0||wd===6?"fds":""}${iso===D.today?" hoje":""}"><th>${["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"][wd]} ${d}</th>${cell("Manhã")}${cell("Noite")}<td class="fer">${fer.map(e).join(", ")}</td></tr>`}).join("");
+  return form+mp+`<div class="card" style="padding:4px 8px"><table class="cal"><thead><tr><th></th><th>Manhã<small>10-17h</small></th><th>Noite<small>17-24h</small></th><th>Férias</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
 const curMonth=()=>D.today.slice(0,7);
 function monthPick(){return `<label>Mês<input type="month" data-ml value="${mlMonth||curMonth()}"></label>`}
 function aCash(){
@@ -288,8 +308,9 @@ function aCash(){
 }
 function aGoods(){
   if(!ML)return `${monthPick()}<p class="center">A carregar…</p>`;
-  return `${monthPick()}${ML.goods.map(g=>`<div class="card"><div class="two"><b>${e(g.description)}</b><button class="sm no" data-a="delgoods" data-id="${g.id}">Apagar</button></div><div class="mute">${e(dayL(g.day))} às ${e(g.at)} · ${e(g.name||"")}${g.invoice_no?` · fatura ${e(g.invoice_no)}`:""}${g.supplier?` · ${e(g.supplier)}`:""}</div>
-  ${g.has_photo?(photos[g.id]?`<a href="${photos[g.id]}" target="_blank" rel="noopener"><img src="${photos[g.id]}" alt="Fatura" style="width:100%;margin-top:10px;border-radius:8px;border:1px solid var(--line)"></a>`:`<p style="margin:10px 0 0"><button class="sm" data-a="photo" data-id="${g.id}">Ver foto da fatura</button></p>`):""}</div>`).join("")||'<div class="card mute">Sem mercadoria registada neste mês.</div>'}`;
+  return `${monthPick()}${ML.goods.map(g=>`<div class="card"${g.has_photo?` data-a="photo" data-id="${g.id}" style="cursor:pointer"`:""}><div class="two"><b>${e(g.description)}</b>${g.has_photo?'<span class="tag ok">com fatura</span>':'<span class="tag na">sem foto</span>'}</div><div class="mute">${e(dayL(g.day))} às ${e(g.at)} · ${e(g.name||"")}${g.invoice_no?` · fatura ${e(g.invoice_no)}`:""}${g.supplier?` · ${e(g.supplier)}`:""}</div>
+  ${g.has_photo?(photos[g.id]?`<img src="${photos[g.id]}" alt="Fatura" style="width:100%;margin-top:10px;border-radius:8px;border:1px solid var(--line)"><p class="mute" style="margin:6px 0 0">Toca outra vez para esconder.</p>`:`<p class="mute" style="margin:8px 0 0">Toca para ver a fatura.</p>`):""}
+  <p style="margin:10px 0 0;display:flex;gap:8px">${photos[g.id]?`<button class="sm" data-a="bigphoto" data-id="${g.id}">Abrir em grande</button>`:""}<button class="sm no" data-a="delgoods" data-id="${g.id}">Apagar</button></p></div>`).join("")||'<div class="card mute">Sem mercadoria registada neste mês.</div>'}`;
 }
 function aBreaks(){
   if(!ML)return `${monthPick()}<p class="center">A carregar…</p>`;
@@ -334,9 +355,9 @@ function aLists(){
   if(edit&&edit.k==="check"){const c=edit.v;return `<form class="card" data-f="check"><b>${c.id?"Editar passo":"Novo passo"}</b><input type="hidden" name="id" value="${c.id||""}">
   <label>Lista<select name="kind"><option value="abertura" ${c.kind==="abertura"?"selected":""}>Abertura</option><option value="fecho" ${c.kind==="fecho"?"selected":""}>Fecho</option></select></label>
   <label>O que fazer<input name="label" value="${e(c.label||"")}" required></label><button class="btn">Guardar</button><button type="button" class="btn sec" data-a="cancel">Cancelar</button></form>`}
-  return `<p class="mute">Os passos que cada empregado pica ao abrir e ao fechar o turno.</p>${["abertura","fecho"].map(k=>`<div class="card"><b>${k==="abertura"?"Abertura":"Fecho"}</b>${checks(k).map((c,i,a)=>`<div class="row"><div class="n">${e(c.label)}</div>
+  return `<p class="mute">Os passos que cada empregado pica ao abrir e ao fechar o turno.</p>${["abertura","fecho"].map(k=>`<div class="card"><b>${k==="abertura"?"Abertura":"Fecho"}</b>${checks(k).map((c,i,a)=>`<div class="lrow"><div>${i+1}. ${e(c.label)}</div><div class="acts">
   <button class="sm" data-a="mvcheck" data-id="${c.id}" data-d="up" ${i?"":"disabled"} aria-label="Subir">↑</button><button class="sm" data-a="mvcheck" data-id="${c.id}" data-d="down" ${i<a.length-1?"":"disabled"} aria-label="Descer">↓</button>
-  <button class="sm" data-a="editcheck" data-id="${c.id}">Editar</button><button class="sm no" data-a="delcheck" data-id="${c.id}">Apagar</button></div>`).join("")||'<div class="mute">Sem passos.</div>'}
+  <button class="sm" data-a="editcheck" data-id="${c.id}">Editar</button><button class="sm no" data-a="delcheck" data-id="${c.id}">Apagar</button></div></div>`).join("")||'<div class="mute">Sem passos.</div>'}
   <p style="margin:10px 0 0"><button class="sm" data-a="newcheck" data-k="${k}">+ Novo passo</button></p></div>`).join("")}`;
 }
 function aQuestions(){
@@ -347,8 +368,8 @@ function aQuestions(){
   <label>Opções da lista <span class="opt">(separadas por vírgulas, só para escolha)</span><input name="options" value="${e((q.options||[]).join(", "))}"></label>
   <label>Obrigatória?<select name="required"><option value="false">Não</option><option value="true" ${q.required?"selected":""}>Sim</option></select></label>
   <button class="btn">Guardar</button><button type="button" class="btn sec" data-a="cancel">Cancelar</button></form>`}
-  return `<p class="mute">Perguntas a mais que acrescentas aos formulários. Aparecem logo a todos.</p><button class="btn" style="margin:0 0 14px" data-a="newq">Nova pergunta</button>
-  ${Object.entries(FORMS).map(([k,l])=>{const qs=D.questions.filter(q=>q.form===k);return `<div class="card"><b>${l}</b>${qs.map(q=>`<div class="row"><div class="n">${e(q.label)}<small>${q.required?"obrigatória":"opcional"}</small></div><button class="sm" data-a="editq" data-id="${q.id}">Editar</button><button class="sm no" data-a="delq" data-id="${q.id}">Apagar</button></div>`).join("")||'<div class="mute">Sem perguntas extra.</div>'}</div>`}).join("")}`;
+  return `<p class="mute">Perguntas a mais que acrescentas ao fecho de turno, ao aviso de falta ou aos pedidos. Aparecem logo a todos. Depois de criada, cada pergunta tem os botões <b>Editar</b> e <b>Apagar</b>. Os campos fixos (TPA, TOC, total de vendas, contagem) não se mudam aqui.</p><button class="btn" style="margin:0 0 14px" data-a="newq">Nova pergunta</button>
+  ${Object.entries(FORMS).map(([k,l])=>{const qs=D.questions.filter(q=>q.form===k);return `<div class="card"><b>${l}</b>${qs.map(q=>`<div class="lrow"><div>${e(q.label)}<small>${q.required?"obrigatória":"opcional"}</small></div><div class="acts"><button class="sm" data-a="editq" data-id="${q.id}">Editar</button><button class="sm no" data-a="delq" data-id="${q.id}">Apagar</button></div></div>`).join("")||'<div class="mute">Sem perguntas extra.</div>'}</div>`}).join("")}`;
 }
 function aTeam(){
   if(edit&&edit.k==="user"){const u=edit.v;return `<form class="card" data-f="user"><b>${u.id?e(u.name):"Nova pessoa"}</b><input type="hidden" name="id" value="${u.id||""}">
@@ -429,6 +450,7 @@ document.addEventListener("click",async ev=>{
   if(a==="go"&&b.dataset.v==="recipes"){view="recipes";edit=null;REC=null;return loadRec()}
   if(a==="go"){view=b.dataset.v;edit=null;if(view==="admin")tab=null;if(view==="admin"&&tab==="recipes"){REC=null;loadRec();return load()}if(view==="home"||view==="admin"){if(view==="admin"&&ML_TABS.includes(tab))loadML();return load()}return render()}
   if(a==="tab"&&!b.dataset.t){tab=null;edit=null;return load()}
+  if(a==="tab"&&b.dataset.t==="schedule"){tab="schedule";edit=null;SCH=null;schSel=null;render();return loadSch()}
   if(a==="tab"&&b.dataset.t==="recipes"){tab="recipes";edit=null;REC=null;return loadRec()}
   if(a==="tab"){tab=b.dataset.t;edit=null;if(ML_TABS.includes(tab))return loadML();return render()}
   if(a==="cancel"){edit=null;return render()}
@@ -450,11 +472,16 @@ document.addEventListener("click",async ev=>{
   if(a==="delshift")return C("Apagar este turno? As horas e valores dele desaparecem dos mapas.","shift_delete",{id},"Turno apagado.");
   if(a==="delq")return C("Apagar esta pergunta?","question_delete",{id},"Pergunta apagada.");
   if(a==="delcheck")return C("Apagar este passo da lista?","check_delete",{id},"Passo apagado.");
-  if(a==="delsched")return C("Apagar este turno da escala?","schedule_delete",{id},"Turno apagado da escala.");
-  if(a==="delcash")return C("Apagar este movimento de caixa?","cash_delete",{id},"Movimento apagado.");
+  if(a==="delsched"){if(confirm("Tirar esta pessoa deste turno da escala?")&&await act("schedule_delete",{id},"Turno apagado da escala.")){schSel=null;await load();loadSch()}return}
+  if(a==="schcell"){const x=(SCH.schedule||[]).find(y=>y.day===b.dataset.d&&y.shift===b.dataset.s);schSel=x?{...x}:{day:b.dataset.d,shift:b.dataset.s};return render()}
+  if(a==="delcash"){const m=(ML.moves||[]).find(x=>x.id===id)||{};
+    if(!confirm(`⚠️ VAIS APAGAR ESTE MOVIMENTO DE CAIXA\n\n${m.kind==="saida"?"Saída":"Entrada"} de ${eur(m.amount)} · ${m.description||""}\n${m.day?dayL(m.day):""}${m.name?" · "+m.name:""}\n\nO saldo do fundo de maneio e os mapas vão mudar.`))return;
+    if(!confirm("Tens a certeza? Depois de apagado, não se pode recuperar."))return;
+    if(await act("cash_delete",{id},"Movimento apagado."))loadML();return}
   if(a==="delgoods")return C("Apagar este registo de mercadoria?","goods_delete",{id},"Registo apagado.");
   if(a==="delbreak")return C("Apagar este registo de quebra? A garrafa não volta ao stock sozinha.","breakage_delete",{id},"Registo apagado.");
-  if(a==="photo"){b.disabled=true;b.textContent="A carregar…";const r=await api("goods_photo",{id});if(r.error||!r.photo){flash={t:"err",m:r.error||"Esta foto já não existe."};return render()}photos[id]=r.photo;return render()}
+  if(a==="bigphoto"){try{const bl=await (await fetch(photos[id])).blob();window.open(URL.createObjectURL(bl),"_blank")}catch(_){}return}
+  if(a==="photo"){if(photos[id]){delete photos[id];return render()}const r=await api("goods_photo",{id});if(r.error||!r.photo){flash={t:"err",m:r.error||"Esta foto já não existe."};return render()}photos[id]=r.photo;return render()}
   if(a==="mvcheck"){if(await act("check_move",{id,dir:b.dataset.d}))load();return}
   if(a==="resolve"){if(await act("alert_resolve",{id,resolved:b.dataset.r==="1"}))load();return}
   if(a==="decide"){if(await act("request_decide",{id,status:b.dataset.s},"Pedido "+b.dataset.s+"."))load();return}
@@ -463,6 +490,7 @@ document.addEventListener("input",ev=>{if(ev.target.dataset.recq!==undefined){re
 document.addEventListener("change",async ev=>{
   const t=ev.target;
   if(t.dataset.ml!==undefined){mlMonth=t.value||null;return loadML()}
+  if(t.dataset.schm!==undefined){schMonth=t.value||null;SCH=null;render();return loadSch()}
   if(t.dataset.stock){const v=num(t.value);if(t.value.trim()!==""&&(v==null||v<0)){t.value="";return}if(await act("stock_set",{id:t.dataset.stock,current_stock:v==null?"":String(v)},"Stock atualizado."))load()}
   if(t.dataset.level){if(await act("stock_set",{id:t.dataset.level,level:t.value},"Stock atualizado."))load()}
 });
@@ -507,7 +535,7 @@ document.addEventListener("submit",async ev=>{
     const clash=(LEAVE||[]).filter(x=>!x.mine&&x.from<=dt&&x.to>=df);
     if(["Férias","Folga"].includes(g("type"))&&clash.length&&!confirm(`Nesses dias já ${clash.length>1?"estão":"está"} de férias ou folga: ${clash.map(x=>x.name+" ("+rng(x.from,x.to)+")").join(", ")}. Enviar o pedido mesmo assim?`))return done();
     if(await act("request",{type:g("type"),date_from:df,date_to:g("date_to"),swap_with:g("swap_with"),note:g("note"),answers:answers("request",fd)},"Pedido enviado.")){view="home";return load()}return done()}
-  if(k==="schedule"){if(await act("schedule_save",{day:g("day"),shift:g("shift"),user_id:g("user_id")},"Turno marcado."))return load();return done()}
+  if(k==="schedule"){if(await act("schedule_save",{day:g("day"),shift:g("shift"),user_id:g("user_id")},"Turno marcado.")){schSel=null;await load();return loadSch()}return done()}
   if(k==="shiftedit"){const p={id:g("id"),shift:g("shift"),opened:g("opened"),closed:g("closed"),note:g("note")};
     for(const n of ["tpa","toc","sales_total"]){const raw=g(n),v=num(raw);if(raw&&v==null){inlineErr(f,"Os valores têm de ser números.");return done()}p[n]=v==null?"":String(v)}
     if(await act("shift_edit",p,"Turno corrigido.")){edit=null;return load()}return done()}
