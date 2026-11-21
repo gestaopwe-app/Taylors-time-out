@@ -231,7 +231,7 @@ function vRecipes(){
   const q=recQ.trim().toLowerCase(),L=REC.filter(x=>x.status==="ativa"&&(!q||[x.name,x.ingredients,x.porto].join(" ").toLowerCase().includes(q)));
   app.innerHTML=`<h2>Receitas</h2>${fl()}<label>Procurar<input data-recq value="${e(recQ)}" placeholder="nome, ingrediente ou Porto"></label>
   ${bySeason(L).map(([s,l])=>`<h3>${e(s)}</h3>${l.map(x=>`<details class="card"><summary><div class="two" style="display:inline-flex;width:calc(100% - 20px)"><b>${e(x.name)}</b><b>${x.price!=null?eur(x.price):""}</b></div><div class="mute">${[x.season,x.porto].filter(Boolean).map(e).join(" · ")}</div></summary>${recBody(x)}</details>`).join("")}`).join("")||`<div class="card mute">${REC.some(x=>x.status==="ativa")?"Nenhuma receita encontrada.":"Ainda não há receitas na app."}</div>`}
-  <div class="card mute" style="margin-top:14px">A tónica, a água com gás e o espumante entram sempre depois de agitar, nunca no shaker. Na lança de vapor só se aquece leite, nunca Porto nem sumos.</div>`;
+  <div class="card mute" style="margin-top:14px">Cada cocktail leva <b>50 ml de Porto</b> (5 cl). Uma garrafa de 750 ml dá <b>15 cocktails</b>.<br><br>A tónica, a água com gás e o espumante entram sempre depois de agitar, nunca no shaker. Na lança de vapor só se aquece leite, nunca Porto nem sumos.</div>`;
 }
 function vSchedule(){
   const s=D.schedule.filter(x=>x.day>=D.today);
