@@ -238,7 +238,7 @@ function vRequest(){
 function vRecipes(){
   if(!REC){app.innerHTML=`<h2>Receitas</h2><p class="center">A carregar…</p>`;return}
   const q=recQ.trim().toLowerCase(),L=REC.filter(x=>x.status==="ativa"&&(!q||[x.name,x.ingredients,x.porto].join(" ").toLowerCase().includes(q)));
-  app.innerHTML=`<h2>Receitas</h2>${fl()}<label>Procurar<input data-recq value="${e(recQ)}" placeholder="nome, ingrediente ou Porto"></label>
+  app.innerHTML=`<h2>Receitas</h2>${fl()}${INTRO&&!q?`<details class="card" open><summary><b>Os vinhos da Taylor's</b> <span class="mute">· toca para fechar</span></summary>${introHtml(INTRO)}</details>`:""}<label>Procurar<input data-recq value="${e(recQ)}" placeholder="nome, ingrediente ou Porto"></label>
   ${bySeason(L).map(([s,l])=>`<h3>${e(s)}</h3>${l.map(x=>`<details class="card"><summary><div class="two" style="display:inline-flex;width:calc(100% - 20px)"><b>${e(x.name)}</b><b>${x.price!=null?eur(x.price):""}</b></div><div class="mute">${[x.season,x.porto].filter(Boolean).map(e).join(" · ")}</div></summary>${recBody(x)}</details>`).join("")}`).join("")||`<div class="card mute">${REC.some(x=>x.status==="ativa")?"Nenhuma receita encontrada.":"Ainda não há receitas na app."}</div>`}
   <div class="card mute" style="margin-top:14px">Cada cocktail leva <b>50 ml de Porto</b> (5 cl). Uma garrafa de 750 ml dá <b>15 cocktails</b>.<br><br>A tónica, a água com gás e o espumante entram sempre depois de agitar, nunca no shaker. Na lança de vapor só se aquece leite, nunca Porto nem sumos.</div>`;
 }
@@ -350,7 +350,9 @@ function aRecipes(){
     <p style="margin:12px 0 0;display:flex;gap:8px;flex-wrap:wrap">${x.status==="ativa"?`<button class="sm" data-a="recst" data-id="${x.id}" data-s="futura">Voltar às futuras</button>`:`<button class="sm go" data-a="recst" data-id="${x.id}" data-s="ativa">Passar para as receitas</button>`}
     <button class="sm" data-a="editrec" data-id="${x.id}">Editar</button><button class="sm no" data-a="delrec" data-id="${x.id}">Apagar</button></p></details>`;
   const A=REC.filter(x=>x.status==="ativa"),F=REC.filter(x=>x.status!=="ativa");
-  return `<button class="btn" style="margin:0 0 14px" data-a="newrec">Nova receita</button>
+  return `<details class="card"><summary><b>Apresentação dos vinhos</b> <span class="mute">· o texto que aparece no topo das Receitas</span></summary>
+  <form data-f="recintro" style="margin-top:10px"><label>Texto <span class="opt">(cada parágrafo separado por uma linha em branco; o que vem antes de ":" fica a negrito)</span><textarea name="text" rows="14">${e(INTRO)}</textarea></label><button class="btn">Guardar texto</button></form></details>
+  <button class="btn" style="margin:0 0 14px" data-a="newrec">Nova receita</button>
   <h3>Receitas (a equipa vê) · ${A.length}</h3>${A.map(card).join("")||'<div class="card mute">Ainda nenhuma. Passa uma das futuras com o botão "Passar para as receitas".</div>'}
   <h3>Futuras (só a gestão vê) · ${F.length}</h3>${bySeason(F).map(([s,l])=>`<p class="mute" style="margin:10px 0 6px"><b>${e(s)}</b></p>${l.map(card).join("")}`).join("")||'<div class="card mute">Sem receitas futuras.</div>'}`;
 }
@@ -384,11 +386,12 @@ function aTeam(){
 }
 
 async function loadML(){ML=null;render();const r=await api("month_lists",{month:(mlMonth||curMonth())+"-01"});if(r.error){flash={t:"err",m:r.error};ML={moves:[],goods:[],breakages:[]}}else ML=r;if(view==="admin"&&ML_TABS.includes(tab))render()}
-let xlsxP=null,REC=null,recQ="",LEAVE=null;
+let xlsxP=null,REC=null,recQ="",LEAVE=null,INTRO="";
+const introHtml=t=>String(t||"").split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean).map(p=>{const m=p.match(/^([^:\n]{1,45}):\s*([\s\S]*)$/);return m?`<p style="margin:10px 0 0"><b>${e(m[1])}</b><br>${e(m[2])}</p>`:`<p style="margin:10px 0 0">${e(p)}</p>`}).join("");
 const dm=d=>d.slice(8,10)+"/"+d.slice(5,7),rng=(a,b)=>!b||a===b?dm(a):dm(a)+" a "+dm(b);
 async function loadLeave(){const r=await api("leave");LEAVE=r.error?[]:r.leave;if(view==="request"){const f=document.querySelector("form[data-f=request]");if(!f)return render();const keep=new FormData(f);render();const g=document.querySelector("form[data-f=request]");for(const [k,v] of keep)if(g.elements[k]&&typeof v==="string"&&g.elements[k].type!=="radio")g.elements[k].value=v}}
 const SEASONS=["Primavera","Verão","Outono","Inverno","Todo o ano"];
-async function loadRec(){if(!REC)render();const r=await api("recipes");if(r.error){flash={t:"err",m:r.error};REC=[]}else REC=r.recipes;if(view==="recipes"||(view==="admin"&&tab==="recipes"))render()}
+async function loadRec(){if(!REC)render();const r=await api("recipes");if(r.error){flash={t:"err",m:r.error};REC=[]}else{REC=r.recipes;INTRO=r.intro||""}if(view==="recipes"||(view==="admin"&&tab==="recipes"))render()}
 const recBody=x=>`${x.ingredients?`<div style="margin-top:8px"><b>Ingredientes</b><div>${e(x.ingredients)}</div></div>`:""}${x.method?`<div style="margin-top:8px"><b>Como fazer</b><div>${e(x.method)}</div></div>`:""}${x.glass?`<div style="margin-top:8px"><b>Copo e decoração</b><div>${e(x.glass)}</div></div>`:""}${x.notes?`<div class="mute" style="margin-top:8px">${e(x.notes)}</div>`:""}`;
 const recSub=x=>[x.season,x.porto,x.price!=null?eur(x.price):""].filter(Boolean).map(e).join(" · ");
 const bySeason=L=>{const o=[...SEASONS,"Outras"].map(s=>[s,L.filter(x=>(SEASONS.includes(x.season)?x.season:"Outras")===s)]);return o.filter(([,l])=>l.length)};
@@ -549,6 +552,7 @@ document.addEventListener("submit",async ev=>{
   if(k==="item"){const p={id:g("id"),name:g("name"),category:g("category"),supplier:g("supplier"),unit:g("unit"),mode:g("mode"),min_stock:num(g("min_stock"))==null?"":String(num(g("min_stock")))};
     if(g("id"))p.active=g("active")!=="false";if(await act("item_save",p,"Artigo guardado.")){edit=null;return load()}return done()}
   if(k==="check"){if(await act("check_save",{id:g("id"),kind:g("kind"),label:g("label")},"Passo guardado.")){edit=null;return load()}return done()}
+  if(k==="recintro"){if(await act("recipes_intro",{text:fd.get("text")||""},"Texto guardado. A equipa já o vê.")){return loadRec()}return done()}
   if(k==="recipe"){const pr=g("price"),pv=num(pr);if(pr&&pv==null){inlineErr(f,"O preço tem de ser um número.");return done()}
     const p={id:g("id"),name:g("name"),season:g("season"),porto:g("porto"),price:pv==null?"":String(pv),ingredients:g("ingredients"),method:g("method"),glass:g("glass"),notes:g("notes"),status:g("status")};
     if(await act("recipe_save",p,"Receita guardada.")){edit=null;return loadRec()}return done()}
