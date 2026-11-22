@@ -328,7 +328,7 @@ function aCash(){
 function aGoods(){
   if(!ML)return `${monthPick()}<p class="center">A carregar…</p>`;
   return `${monthPick()}${ML.goods.map(g=>`<div class="card"${g.has_photo?` data-a="photo" data-id="${g.id}" style="cursor:pointer"`:""}><div class="two"><b>${e(g.description)}</b>${g.has_photo?'<span class="tag ok">com fatura</span>':'<span class="tag na">sem foto</span>'}</div><div class="mute">${e(dayL(g.day))} às ${e(g.at)} · ${e(g.name||"")}${g.invoice_no?` · fatura ${e(g.invoice_no)}`:""}${g.supplier?` · ${e(g.supplier)}`:""}</div>
-  ${g.has_photo?(photos[g.id]?`<img src="${photos[g.id]}" alt="Fatura" style="width:100%;margin-top:10px;border-radius:8px;border:1px solid var(--line)"><p class="mute" style="margin:6px 0 0">Toca outra vez para esconder.</p>`:`<p class="mute" style="margin:8px 0 0">Toca para ver a fatura.</p>`):""}
+  ${g.has_photo?(photos[g.id]?`<img src="${e(photos[g.id])}" alt="Fatura" style="width:100%;margin-top:10px;border-radius:8px;border:1px solid var(--line)"><p class="mute" style="margin:6px 0 0">Toca outra vez para esconder.</p>`:`<p class="mute" style="margin:8px 0 0">Toca para ver a fatura.</p>`):""}
   <p style="margin:10px 0 0;display:flex;gap:8px">${photos[g.id]?`<button class="sm" data-a="bigphoto" data-id="${g.id}">Abrir em grande</button>`:""}<button class="sm no" data-a="delgoods" data-id="${g.id}">Apagar</button></p></div>`).join("")||'<div class="card mute">Sem mercadoria registada neste mês.</div>'}`;
 }
 function aBreaks(){
@@ -503,7 +503,7 @@ document.addEventListener("click",async ev=>{
   if(a==="delgoods")return C("Apagar este registo de mercadoria?","goods_delete",{id},"Registo apagado.");
   if(a==="delbreak")return C("Apagar este registo de quebra? A garrafa não volta ao stock sozinha.","breakage_delete",{id},"Registo apagado.");
   if(a==="bigphoto"){try{const bl=await (await fetch(photos[id])).blob();window.open(URL.createObjectURL(bl),"_blank")}catch(_){}return}
-  if(a==="photo"){if(photos[id]){delete photos[id];return render()}const r=await api("goods_photo",{id});if(r.error||!r.photo){flash={t:"err",m:r.error||"Esta foto já não existe."};return render()}photos[id]=r.photo;return render()}
+  if(a==="photo"){if(photos[id]){delete photos[id];return render()}const r=await api("goods_photo",{id});if(r.error||!r.photo){flash={t:"err",m:r.error||"Esta foto já não existe."};return render()}if(!/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(r.photo)){flash={t:"err",m:"Foto inválida."};return render()}photos[id]=r.photo;return render()}
   if(a==="mvcheck"){if(await act("check_move",{id,dir:b.dataset.d}))load();return}
   if(a==="resolve"){if(await act("alert_resolve",{id,resolved:b.dataset.r==="1"}))load();return}
   if(a==="decide"){if(await act("request_decide",{id,status:b.dataset.s},"Pedido "+b.dataset.s+"."))load();return}
